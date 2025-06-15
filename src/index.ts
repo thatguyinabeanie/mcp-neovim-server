@@ -12,7 +12,7 @@ import { z } from "zod";
 const server = new McpServer(
   {
     name: "mcp-neovim-server",
-    version: "0.5.1"
+    version: "0.5.2"
   }
 );
 
@@ -72,6 +72,7 @@ server.resource(
 // Register tools with proper parameter schemas
 server.tool(
   "vim_buffer",
+  "Get buffer contents with line numbers",
   { filename: z.string().optional().describe("Optional file name to view a specific buffer") },
   async ({ filename }) => {
     try {
@@ -97,10 +98,9 @@ server.tool(
 
 server.tool(
   "vim_command",
+  "Execute Vim commands with optional shell command support",
   { command: z.string().describe("Vim command to execute (use ! prefix for shell commands if enabled)") },
   async ({ command }) => {
-    console.error(`Executing command: ${command}`);
-    
     try {
       // Check if this is a shell command
       if (command.startsWith('!')) {
@@ -135,91 +135,141 @@ server.tool(
 
 server.tool(
   "vim_status",
-  { filename: z.string().optional().describe("Optional file name to get status for a specific buffer") },
+  "Get comprehensive Neovim status including cursor position, mode, marks, and registers",
+  {},
   async () => {
-    const status = await neovimManager.getNeovimStatus();
-    return {
-      content: [{
-        type: "text",
-        text: JSON.stringify(status)
-      }]
-    };
+    try {
+      const status = await neovimManager.getNeovimStatus();
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify(status, null, 2)
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error getting Neovim status'
+        }]
+      };
+    }
   }
 );
 
 server.tool(
   "vim_edit",
+  "Edit buffer content using insert, replace, or replaceAll modes",
   { 
     startLine: z.number().describe("The line number where editing should begin (1-indexed)"),
     mode: z.enum(["insert", "replace", "replaceAll"]).describe("Whether to insert new content, replace existing content, or replace entire buffer"),
     lines: z.string().describe("The text content to insert or use as replacement")
   },
   async ({ startLine, mode, lines }) => {
-    console.error(`Editing lines: ${startLine}, ${mode}, ${lines}`);
-    const result = await neovimManager.editLines(startLine, mode, lines);
-    return {
-      content: [{
-        type: "text",
-        text: result
-      }]
-    };
+    try {
+      const result = await neovimManager.editLines(startLine, mode, lines);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error editing buffer'
+        }]
+      };
+    }
   }
 );
 
 server.tool(
   "vim_window",
+  "Manage Neovim windows: split, close, and navigate between windows",
   { 
     command: z.enum(["split", "vsplit", "only", "close", "wincmd h", "wincmd j", "wincmd k", "wincmd l"])
       .describe("Window manipulation command: split or vsplit to create new window, only to keep just current window, close to close current window, or wincmd with h/j/k/l to navigate between windows")
   },
   async ({ command }) => {
-    const result = await neovimManager.manipulateWindow(command);
-    return {
-      content: [{
-        type: "text",
-        text: result
-      }]
-    };
+    try {
+      const result = await neovimManager.manipulateWindow(command);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error manipulating window'
+        }]
+      };
+    }
   }
 );
 
 server.tool(
   "vim_mark",
+  "Set named marks at specific positions in the buffer",
   {
     mark: z.string().regex(/^[a-z]$/).describe("Single lowercase letter [a-z] to use as the mark name"),
     line: z.number().describe("The line number where the mark should be placed (1-indexed)"),
     column: z.number().describe("The column number where the mark should be placed (0-indexed)")
   },
   async ({ mark, line, column }) => {
-    const result = await neovimManager.setMark(mark, line, column);
-    return {
-      content: [{
-        type: "text",
-        text: result
-      }]
-    };
+    try {
+      const result = await neovimManager.setMark(mark, line, column);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error setting mark'
+        }]
+      };
+    }
   }
 );
 
 server.tool(
   "vim_register",
+  "Manage Neovim register contents",
   {
     register: z.string().regex(/^[a-z\"]$/).describe("Register name - a lowercase letter [a-z] or double-quote [\"] for the unnamed register"),
     content: z.string().describe("The text content to store in the specified register")
   },
   async ({ register, content }) => {
-    const result = await neovimManager.setRegister(register, content);
-    return {
-      content: [{
-        type: "text",
-        text: result
-      }]
-    };
+    try {
+      const result = await neovimManager.setRegister(register, content);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error setting register'
+        }]
+      };
+    }
   }
 );
 
 server.tool(
   "vim_visual",
+  "Create visual mode selections in the buffer",
   {
     startLine: z.number().describe("The starting line number for visual selection (1-indexed)"),
     startColumn: z.number().describe("The starting column number for visual selection (0-indexed)"),
@@ -227,19 +277,29 @@ server.tool(
     endColumn: z.number().describe("The ending column number for visual selection (0-indexed)")
   },
   async ({ startLine, startColumn, endLine, endColumn }) => {
-    const result = await neovimManager.visualSelect(startLine, startColumn, endLine, endColumn);
-    return {
-      content: [{
-        type: "text",
-        text: result
-      }]
-    };
+    try {
+      const result = await neovimManager.visualSelect(startLine, startColumn, endLine, endColumn);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error creating visual selection'
+        }]
+      };
+    }
   }
 );
 
 // New enhanced buffer management tools
 server.tool(
   "vim_buffer_switch",
+  "Switch between buffers by name or number",
   {
     identifier: z.union([z.string(), z.number()]).describe("Buffer identifier - can be buffer number or filename/path")
   },
@@ -265,6 +325,7 @@ server.tool(
 
 server.tool(
   "vim_buffer_save",
+  "Save current buffer or save to specific filename",
   {
     filename: z.string().optional().describe("Optional filename to save buffer to (defaults to current buffer's filename)")
   },
@@ -290,6 +351,7 @@ server.tool(
 
 server.tool(
   "vim_file_open",
+  "Open files into new buffers",
   {
     filename: z.string().describe("Path to the file to open")
   },
@@ -316,6 +378,7 @@ server.tool(
 // New search and replace tools
 server.tool(
   "vim_search",
+  "Search within current buffer with regex support and options",
   {
     pattern: z.string().describe("Search pattern (supports regex)"),
     ignoreCase: z.boolean().optional().describe("Whether to ignore case in search (default: false)"),
@@ -343,6 +406,7 @@ server.tool(
 
 server.tool(
   "vim_search_replace",
+  "Find and replace with global, case-insensitive, and confirm options",
   {
     pattern: z.string().describe("Search pattern (supports regex)"),
     replacement: z.string().describe("Replacement text"),
@@ -372,6 +436,7 @@ server.tool(
 
 server.tool(
   "vim_grep",
+  "Project-wide search using vimgrep with quickfix list",
   {
     pattern: z.string().describe("Search pattern to grep for"),
     filePattern: z.string().optional().describe("File pattern to search in (default: **/* for all files)")
@@ -399,6 +464,7 @@ server.tool(
 // Health check tool
 server.tool(
   "vim_health",
+  "Check Neovim connection health",
   {},
   async () => {
     const isHealthy = await neovimManager.healthCheck();
@@ -414,6 +480,7 @@ server.tool(
 // Macro management tool
 server.tool(
   "vim_macro",
+  "Record, stop, and play Neovim macros",
   {
     action: z.enum(["record", "stop", "play"]).describe("Action to perform with macros"),
     register: z.string().optional().describe("Register to record/play macro (a-z, required for record/play)"),
@@ -442,6 +509,7 @@ server.tool(
 // Tab management tool
 server.tool(
   "vim_tab",
+  "Manage Neovim tabs: create, close, and navigate between tabs",
   {
     action: z.enum(["new", "close", "next", "prev", "first", "last", "list"]).describe("Tab action to perform"),
     filename: z.string().optional().describe("Filename for new tab (optional)")
@@ -469,6 +537,7 @@ server.tool(
 // Code folding tool
 server.tool(
   "vim_fold",
+  "Manage code folding: create, open, close, and toggle folds",
   {
     action: z.enum(["create", "open", "close", "toggle", "openall", "closeall", "delete"]).describe("Folding action to perform"),
     startLine: z.number().optional().describe("Start line for creating fold (required for create)"),
@@ -497,6 +566,7 @@ server.tool(
 // Jump list navigation tool
 server.tool(
   "vim_jump",
+  "Navigate Neovim jump list: go back, forward, or list jumps",
   {
     direction: z.enum(["back", "forward", "list"]).describe("Jump direction or list jumps")
   },
@@ -520,10 +590,36 @@ server.tool(
   }
 );
 
-// Register an empty prompts list since we don't support any prompts. Clients still ask.
-server.prompt("empty", {}, () => ({
-  messages: []
-}));
+// Register a sample prompt for Neovim workflow assistance
+server.prompt(
+  "neovim_workflow", 
+  "Get help with common Neovim workflows and editing tasks",
+  {
+    task: z.enum(["editing", "navigation", "search", "buffers", "windows", "macros"]).describe("Type of Neovim task you need help with")
+  },
+  async ({ task }) => {
+    const workflows = {
+      editing: "Here are common editing workflows:\n1. Use vim_edit with 'insert' mode to add new content\n2. Use vim_edit with 'replace' mode to modify existing lines\n3. Use vim_search_replace for find and replace operations\n4. Use vim_visual to select text ranges before operations",
+      navigation: "Navigation workflows:\n1. Use vim_mark to set bookmarks in your code\n2. Use vim_jump to navigate through your jump history\n3. Use vim_command with 'gg' or 'G' to go to start/end of file\n4. Use vim_command with line numbers like ':42' to jump to specific lines",
+      search: "Search workflows:\n1. Use vim_search to find patterns in current buffer\n2. Use vim_grep for project-wide searches\n3. Use vim_search_replace for complex find/replace operations\n4. Use regex patterns for advanced matching",
+      buffers: "Buffer management:\n1. Use vim_buffer to view buffer contents\n2. Use vim_buffer_switch to change between buffers\n3. Use vim_file_open to open new files\n4. Use vim_buffer_save to save your work",
+      windows: "Window management:\n1. Use vim_window with 'split'/'vsplit' to create new windows\n2. Use vim_window with 'wincmd h/j/k/l' to navigate between windows\n3. Use vim_window with 'close' to close current window\n4. Use vim_window with 'only' to keep only current window",
+      macros: "Macro workflows:\n1. Use vim_macro with 'record' and a register to start recording\n2. Perform your actions in Neovim\n3. Use vim_macro with 'stop' to end recording\n4. Use vim_macro with 'play' to execute recorded actions"
+    };
+
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content: {
+            type: "text",
+            text: workflows[task] || "Unknown task type. Available tasks: editing, navigation, search, buffers, windows, macros"
+          }
+        }
+      ]
+    };
+  }
+);
 
 /**
  * Start the server using stdio transport.

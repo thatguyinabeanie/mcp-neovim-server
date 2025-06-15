@@ -2,6 +2,8 @@
 
 Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MCP and the official neovim/node-client JavaScript library. This server leverages Vim's native text editing commands and workflows, which Claude already understands, to create a lightweight code or general purpose AI text assistance layer.
 
+**Version 0.5.2** - Now with comprehensive error handling, improved MCP compliance, and helpful workflow prompts!
+
 <a href="https://glama.ai/mcp/servers/s0fywdwp87"><img width="380" height="200" src="https://glama.ai/mcp/servers/s0fywdwp87/badge" alt="mcp-neovim-server MCP server" /></a>
 
 ## Features
@@ -61,7 +63,7 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 #### Enhanced Buffer Management
 - **vim_buffer_switch**
   - Switch between buffers by name or number
-  - Input `buffer` (string | number) - Buffer name or number
+  - Input `identifier` (string | number) - Buffer name or number
 - **vim_buffer_save**
   - Save current buffer or save to specific filename
   - Input `filename` (string, optional) - Save to specific file
@@ -72,13 +74,13 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 #### Search and Replace
 - **vim_search**
   - Search within current buffer with regex support
-  - Input `pattern` (string), `options` (object, optional) with `backwards`, `wrap`, `ignorecase`
+  - Input `pattern` (string), `ignoreCase` (boolean, optional), `wholeWord` (boolean, optional)
 - **vim_search_replace**
   - Find and replace with advanced options
-  - Input `pattern` (string), `replacement` (string), `options` (object, optional) with `global`, `ignorecase`, `confirm`
+  - Input `pattern` (string), `replacement` (string), `global` (boolean, optional), `ignoreCase` (boolean, optional), `confirm` (boolean, optional)
 - **vim_grep**
   - Project-wide search using vimgrep with quickfix list
-  - Input `pattern` (string), `files` (string, optional) - File pattern to search
+  - Input `pattern` (string), `filePattern` (string, optional) - File pattern to search
 
 #### Advanced Workflow Tools
 - **vim_macro**
@@ -100,15 +102,19 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 
 Using this comprehensive set of **19 tools**, Claude can peer into your neovim session, navigate buffers, perform searches, make edits, record macros, manage tabs and folds, and handle your complete development workflow with standard Neovim features.
 
+### Prompts
+
+- **neovim_workflow**: Get contextual help and guidance for common Neovim workflows including editing, navigation, search, buffer management, window operations, and macro usage. Provides step-by-step instructions for accomplishing tasks with the available MCP tools.
+
 ## Error Handling
 
-The server implements robust error handling with custom error classes:
+The server implements comprehensive error handling with custom error classes and consistent error responses:
 
 - **NeovimConnectionError**: Socket connection failures with detailed messages
 - **NeovimCommandError**: Command execution failures with command context  
 - **NeovimValidationError**: Input validation failures
 
-Features include connection health monitoring, graceful error propagation, and actionable error messages to help diagnose issues.
+**New in v0.5.2**: All tools now include robust try-catch error handling that returns meaningful error messages in proper MCP format. Features include connection health monitoring, graceful error propagation, and actionable error messages to help diagnose issues.
 
 ## Limitations
 

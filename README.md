@@ -7,10 +7,14 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 ## Features
 
 - Connects to your nvim instance if you expose a socket file, for example `--listen /tmp/nvim`, when starting nvim
-- Views your current buffers
-- Gets cursor location, mode, file name
+- Views your current buffers and manages buffer switching
+- Gets cursor location, mode, file name, marks, registers, and visual selections
 - Runs vim commands and optionally shell commands through vim
-- Can make edits using insert or replacement
+- Can make edits using insert, replace, or replaceAll modes
+- Search and replace functionality with regex support
+- Project-wide grep search with quickfix integration
+- Comprehensive window management
+- Health monitoring and connection diagnostics
 
 ## API
 
@@ -20,49 +24,97 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 - `nvim://buffers`: List of all open buffers in the current Neovim session with metadata including modified status, syntax, and window IDs
 
 ### Tools
+
+#### Core Tools
 - **vim_buffer**
-  - Current VIM text editor buffer with line numbers shown
-  - Input `filename` (string)
-  - Filename is ignored, returns a string of numbered lines with the current active buffer content
+  - Get buffer contents with line numbers (supports filename parameter)
+  - Input `filename` (string, optional) - Get specific buffer by filename
+  - Returns numbered lines with buffer content
 - **vim_command**
   - Send a command to VIM for navigation, spot editing, and line deletion
   - Input `command` (string)
-  - Runs a vim command first passed through `nvim.replaceTermcodes`. Multiple commands will work if separated by newlines
+  - Runs vim commands with `nvim.replaceTermcodes`. Multiple commands work with newlines
+  - Shell commands supported with `!` prefix when `ALLOW_SHELL_COMMANDS=true`
   - On error, `'nvim:errmsg'` contents are returned 
 - **vim_status**
-  - Get the status of the VIM editor
-  - Status contains cursor position, mode, filename, visual selection, window layout, current tab, marks, registers, and working directory
+  - Get comprehensive Neovim status
+  - Returns cursor position, mode, filename, visual selection, window layout, current tab, marks, registers, working directory, LSP client info, and plugin detection
 - **vim_edit**
-  - Edit lines using insert, replace, or replaceAll in the VIM editor
+  - Edit lines using insert, replace, or replaceAll modes
   - Input `startLine` (number), `mode` (`"insert"` | `"replace"` | `"replaceAll"`), `lines` (string)
-  - insert will insert lines at startLine
-  - replace will replace lines starting at startLine
-  - replaceAll will replace the entire buffer contents
+  - insert: insert lines at startLine
+  - replace: replace lines starting at startLine
+  - replaceAll: replace entire buffer contents
 - **vim_window**
   - Manipulate Neovim windows (split, vsplit, close, navigate)
   - Input `command` (string: "split", "vsplit", "only", "close", "wincmd h/j/k/l")
-  - Allows window management operations
 - **vim_mark**
-  - Set a mark at a specific position
+  - Set named marks at specific positions
   - Input `mark` (string: a-z), `line` (number), `column` (number)
-  - Sets named marks at specified positions
 - **vim_register**
-  - Set content of a register
+  - Set content of registers
   - Input `register` (string: a-z or "), `content` (string)
-  - Manages register contents
 - **vim_visual**
-  - Make a visual selection
+  - Create visual mode selections
   - Input `startLine` (number), `startColumn` (number), `endLine` (number), `endColumn` (number)
-  - Creates visual mode selections
 
-Using this simple set of tools, Claude can peer into your neovim session to answer questions as well as make edits to the buffer.
+#### Enhanced Buffer Management
+- **vim_buffer_switch**
+  - Switch between buffers by name or number
+  - Input `buffer` (string | number) - Buffer name or number
+- **vim_buffer_save**
+  - Save current buffer or save to specific filename
+  - Input `filename` (string, optional) - Save to specific file
+- **vim_file_open**
+  - Open files into new buffers
+  - Input `filename` (string) - File to open
+
+#### Search and Replace
+- **vim_search**
+  - Search within current buffer with regex support
+  - Input `pattern` (string), `options` (object, optional) with `backwards`, `wrap`, `ignorecase`
+- **vim_search_replace**
+  - Find and replace with advanced options
+  - Input `pattern` (string), `replacement` (string), `options` (object, optional) with `global`, `ignorecase`, `confirm`
+- **vim_grep**
+  - Project-wide search using vimgrep with quickfix list
+  - Input `pattern` (string), `files` (string, optional) - File pattern to search
+
+#### Advanced Workflow Tools
+- **vim_macro**
+  - Record, stop, and play Vim macros
+  - Input `action` ("record" | "stop" | "play"), `register` (string, a-z), `count` (number, optional)
+- **vim_tab**
+  - Complete tab management
+  - Input `action` ("new" | "close" | "next" | "prev" | "first" | "last" | "list"), `filename` (string, optional)
+- **vim_fold**
+  - Code folding operations
+  - Input `action` ("create" | "open" | "close" | "toggle" | "openall" | "closeall" | "delete"), `startLine`/`endLine` (numbers, for create)
+- **vim_jump**
+  - Jump list navigation
+  - Input `direction` ("back" | "forward" | "list")
+
+#### System Tools
+- **vim_health**
+  - Check Neovim connection health and socket status
+
+Using this comprehensive set of **19 tools**, Claude can peer into your neovim session, navigate buffers, perform searches, make edits, record macros, manage tabs and folds, and handle your complete development workflow with standard Neovim features.
+
+## Error Handling
+
+The server implements robust error handling with custom error classes:
+
+- **NeovimConnectionError**: Socket connection failures with detailed messages
+- **NeovimCommandError**: Command execution failures with command context  
+- **NeovimValidationError**: Input validation failures
+
+Features include connection health monitoring, graceful error propagation, and actionable error messages to help diagnose issues.
 
 ## Limitations
 
-- This is a quick proof of concept to experiment with Model Context Protocol. Use at your own risk.
-- May not interact well with a custom neovim config!
-- Error handling could be better.
-- Sometimes Claude doesn't get the vim command input just right.
+- May not interact well with complex neovim configurations or plugins
+- Shell command execution is disabled by default for security
+- Socket connection required - won't work with standard vim
 
 ## Configuration
 

@@ -69,6 +69,223 @@ server.resource(
   }
 );
 
+// Enhanced resources from claude-code.nvim
+server.resource(
+  "project-structure",
+  new ResourceTemplate("nvim://project-structure", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://project-structure",
+        mimeType: "text/plain",
+        name: "Project structure",
+        description: "File tree of the current working directory"
+      }]
+    })
+  }),
+  async (uri) => {
+    const projectStructure = await neovimManager.getProjectStructure();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "text/plain",
+        text: projectStructure
+      }]
+    };
+  }
+);
+
+server.resource(
+  "git-status",
+  new ResourceTemplate("nvim://git-status", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://git-status",
+        mimeType: "text/plain",
+        name: "Git status",
+        description: "Current git repository status"
+      }]
+    })
+  }),
+  async (uri) => {
+    const gitStatus = await neovimManager.getGitStatus();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "text/plain",
+        text: gitStatus
+      }]
+    };
+  }
+);
+
+server.resource(
+  "lsp-diagnostics",
+  new ResourceTemplate("nvim://lsp-diagnostics", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://lsp-diagnostics",
+        mimeType: "application/json",
+        name: "LSP diagnostics",
+        description: "Current LSP diagnostics for all buffers"
+      }]
+    })
+  }),
+  async (uri) => {
+    const diagnostics = await neovimManager.getLspDiagnostics();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: diagnostics
+      }]
+    };
+  }
+);
+
+server.resource(
+  "vim-options",
+  new ResourceTemplate("nvim://vim-options", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://vim-options",
+        mimeType: "application/json",
+        name: "Vim options",
+        description: "Current Neovim configuration and options"
+      }]
+    })
+  }),
+  async (uri) => {
+    const options = await neovimManager.getVimOptions();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: options
+      }]
+    };
+  }
+);
+
+server.resource(
+  "related-files",
+  new ResourceTemplate("nvim://related-files", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://related-files",
+        mimeType: "application/json",
+        name: "Related files",
+        description: "Files related to current buffer through imports/requires"
+      }]
+    })
+  }),
+  async (uri) => {
+    const relatedFiles = await neovimManager.getRelatedFiles();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: relatedFiles
+      }]
+    };
+  }
+);
+
+server.resource(
+  "recent-files",
+  new ResourceTemplate("nvim://recent-files", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://recent-files",
+        mimeType: "application/json",
+        name: "Recent files",
+        description: "Recently accessed files in current project"
+      }]
+    })
+  }),
+  async (uri) => {
+    const recentFiles = await neovimManager.getRecentFiles();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: recentFiles
+      }]
+    };
+  }
+);
+
+server.resource(
+  "visual-selection",
+  new ResourceTemplate("nvim://visual-selection", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://visual-selection",
+        mimeType: "application/json",
+        name: "Visual selection",
+        description: "Currently selected text or last visual selection"
+      }]
+    })
+  }),
+  async (uri) => {
+    const selection = await neovimManager.getCurrentSelection(true);
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: selection
+      }]
+    };
+  }
+);
+
+server.resource(
+  "workspace-context",
+  new ResourceTemplate("nvim://workspace-context", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://workspace-context",
+        mimeType: "application/json",
+        name: "Workspace context",
+        description: "Enhanced workspace context with all related information"
+      }]
+    })
+  }),
+  async (uri) => {
+    const context = await neovimManager.getWorkspaceContext();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: context
+      }]
+    };
+  }
+);
+
+server.resource(
+  "search-results",
+  new ResourceTemplate("nvim://search-results", {
+    list: () => ({
+      resources: [{
+        uri: "nvim://search-results",
+        mimeType: "application/json",
+        name: "Search results",
+        description: "Current search results and quickfix list"
+      }]
+    })
+  }),
+  async (uri) => {
+    const results = await neovimManager.getSearchResults();
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: results
+      }]
+    };
+  }
+);
+
 // Register tools with proper parameter schemas
 server.tool(
   "vim_buffer",
@@ -584,6 +801,113 @@ server.tool(
         content: [{
           type: "text",
           text: error instanceof Error ? error.message : 'Error navigating jump list'
+        }]
+      };
+    }
+  }
+);
+
+// Enhanced tools from claude-code.nvim
+server.tool(
+  "vim_analyze_related",
+  "Analyze files related through imports/requires in the current or specified buffer",
+  {
+    filename: z.string().optional().describe("Optional filename to analyze (defaults to current buffer)")
+  },
+  async ({ filename }) => {
+    try {
+      const result = await neovimManager.analyzeRelatedFiles(filename);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error analyzing related files'
+        }]
+      };
+    }
+  }
+);
+
+server.tool(
+  "vim_find_symbols",
+  "Find workspace symbols using LSP",
+  {
+    query: z.string().optional().describe("Symbol name to search for (empty for all symbols)"),
+    limit: z.number().optional().describe("Maximum number of symbols to return (default: 20)")
+  },
+  async ({ query, limit }) => {
+    try {
+      const result = await neovimManager.findWorkspaceSymbols(query, limit);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error finding workspace symbols'
+        }]
+      };
+    }
+  }
+);
+
+server.tool(
+  "vim_search_files",
+  "Search for files in the current project by pattern",
+  {
+    pattern: z.string().describe("File name pattern to search for"),
+    includeContent: z.boolean().optional().describe("Whether to include file content preview (default: false)")
+  },
+  async ({ pattern, includeContent }) => {
+    try {
+      const result = await neovimManager.searchProjectFiles(pattern, includeContent);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error searching project files'
+        }]
+      };
+    }
+  }
+);
+
+server.tool(
+  "vim_get_selection",
+  "Get the currently selected text or last visual selection from Neovim",
+  {
+    includeContext: z.boolean().optional().describe("Include surrounding context (5 lines before/after) (default: false)")
+  },
+  async ({ includeContext }) => {
+    try {
+      const result = await neovimManager.getCurrentSelection(includeContext);
+      return {
+        content: [{
+          type: "text",
+          text: result
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: error instanceof Error ? error.message : 'Error getting selection'
         }]
       };
     }

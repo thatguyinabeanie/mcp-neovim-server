@@ -825,4 +825,527 @@ export class NeovimManager {
       throw new NeovimCommandError(`jump ${direction}`, error instanceof Error ? error.message : 'Unknown error');
     }
   }
+
+  // Enhanced tools from claude-code.nvim
+
+  public async analyzeRelatedFiles(filename?: string): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      const buffer = filename ? await this.findBufferByName(nvim, filename) : await nvim.buffer;
+      const bufferName = await buffer.name;
+      const filetype = await buffer.getOption('filetype') as string;
+      
+      // Get buffer content to analyze imports
+      const lines = await buffer.lines;
+      const imports: string[] = [];
+      
+      // Pattern matching for different languages
+      const patterns: { [key: string]: RegExp[] } = {
+        javascript: [/import .+ from ['"](.+)['"]/g, /require\(['"](.+)['"]\)/g],
+        typescript: [/import .+ from ['"](.+)['"]/g, /require\(['"](.+)['"]\)/g],
+        python: [/^import (.+)$/gm, /^from (.+) import/gm],
+        lua: [/require\(['"](.+)['"]\)/g, /require '(.+)'/g],
+        vim: [/^source (.+)$/gm, /^runtime (.+)$/gm],
+      };
+      
+      const langPatterns = patterns[filetype] || [];
+      const content = lines.join('\n');
+      
+      for (const pattern of langPatterns) {
+        const matches = content.matchAll(pattern);
+        for (const match of matches) {
+          if (match[1]) {
+            imports.push(match[1]);
+          }
+        }
+      }
+      
+      // Find unique imports
+      const uniqueImports = [...new Set(imports)];
+      
+      const result = {
+        file: bufferName,
+        language: filetype,
+        imports: uniqueImports,
+        importCount: uniqueImports.length,
+      };
+      
+      return JSON.stringify(result, null, 2);
+    } catch (error) {
+      console.error('Error analyzing related files:', error);
+      throw new NeovimCommandError('analyze_related', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  public async findWorkspaceSymbols(query: string = '', limit: number = 20): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      
+      // Check if LSP is available
+      const hasLsp = await nvim.eval('exists(":LspWorkspaceSymbol")') as number;
+      if (!hasLsp) {
+        return 'LSP is not available. Ensure you have LSP configured for workspace symbol search.';
+      }
+      
+      // Execute workspace symbol search
+      await nvim.command(`LspWorkspaceSymbol ${query}`);
+      
+      // Get quickfix list (where LSP results are stored)
+      const qflist = await nvim.eval('getqflist()') as any[];
+      
+      const symbols = qflist.slice(0, limit).map((item: any) => ({
+        name: item.text || '',
+        file: item.filename || item.bufnr,
+        line: item.lnum || 0,
+        column: item.col || 0,
+        type: item.type || 'Unknown',
+      }));
+      
+      if (symbols.length === 0) {
+        return `No symbols found matching query: "${query}"`;
+      }
+      
+      return JSON.stringify({
+        query,
+        count: symbols.length,
+        totalFound: qflist.length,
+        symbols,
+      }, null, 2);
+    } catch (error) {
+      console.error('Error finding workspace symbols:', error);
+      throw new NeovimCommandError('find_symbols', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  public async searchProjectFiles(pattern: string, includeContent: boolean = false): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      const cwd = await nvim.eval('getcwd()') as string;
+      
+      // Use vimgrep for file search
+      try {
+        await nvim.command(`vimgrep /${pattern}/j **/*`);
+      } catch {
+        // If pattern is for filename, try with glob
+        await nvim.command(`args **/*${pattern}*`);
+      }
+      
+      // Get the results
+      const qflist = await nvim.eval('getqflist()') as any[];
+      const arglist = await nvim.eval('argv()') as string[];
+      
+      const files = [...new Set([
+        ...qflist.map((item: any) => item.filename || '').filter(Boolean),
+        ...arglist,
+      ])].slice(0, 20);
+      
+      const results: any[] = [];
+      
+      for (const file of files) {
+        const result: any = {
+          path: file,
+          relativePath: file.replace(cwd + '/', ''),
+        };
+        
+        if (includeContent && file) {
+          try {
+            // Read first 20 lines of the file
+            const content = await nvim.eval(`readfile("${file}", "", 20)`) as string[];
+            result.preview = content.join('\n');
+            result.truncated = content.length === 20;
+          } catch {
+            result.preview = 'Could not read file content';
+          }
+        }
+        
+        results.push(result);
+      }
+      
+      return JSON.stringify({
+        pattern,
+        cwd,
+        count: results.length,
+        files: results,
+      }, null, 2);
+    } catch (error) {
+      console.error('Error searching project files:', error);
+      throw new NeovimCommandError('search_files', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  public async getCurrentSelection(includeContext: boolean = false): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      const mode = await nvim.mode;
+      
+      // Check if we're in visual mode or have visual marks
+      const visualMode = mode.mode.match(/^[vV]/);
+      const startPos = await nvim.eval('getpos("\'<")') as number[];
+      const endPos = await nvim.eval('getpos("\'>")') as number[];
+      
+      if (!visualMode && (startPos[1] === 0 || endPos[1] === 0)) {
+        return 'No visual selection available';
+      }
+      
+      const buffer = await nvim.buffer;
+      const bufferName = await buffer.name;
+      const filetype = await buffer.getOption('filetype') as string;
+      
+      const startLine = startPos[1] - 1;
+      const endLine = endPos[1] - 1;
+      const startCol = startPos[2] - 1;
+      const endCol = endPos[2];
+      
+      // Get the selected lines
+      const lines = await buffer.getLines({ start: startLine, end: endLine + 1, strictIndexing: false });
+      
+      // Handle character-wise selection
+      if (lines.length === 1) {
+        lines[0] = lines[0].substring(startCol, endCol);
+      } else if (lines.length > 1) {
+        lines[0] = lines[0].substring(startCol);
+        lines[lines.length - 1] = lines[lines.length - 1].substring(0, endCol);
+      }
+      
+      const result: any = {
+        mode: visualMode ? 'visual' : 'normal (using last selection)',
+        buffer: bufferName,
+        filetype,
+        selection: {
+          start: { line: startLine + 1, column: startCol + 1 },
+          end: { line: endLine + 1, column: endCol },
+          text: lines.join('\n'),
+          lineCount: lines.length,
+        },
+      };
+      
+      // Include context if requested
+      if (includeContext) {
+        const contextStart = Math.max(0, startLine - 5);
+        const contextEnd = Math.min(await buffer.length, endLine + 6);
+        const contextLines = await buffer.getLines({ start: contextStart, end: contextEnd, strictIndexing: false });
+        
+        result.context = {
+          start: contextStart + 1,
+          end: contextEnd,
+          lines: contextLines,
+        };
+      }
+      
+      return JSON.stringify(result, null, 2);
+    } catch (error) {
+      console.error('Error getting current selection:', error);
+      throw new NeovimCommandError('get_selection', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  private async findBufferByName(nvim: Neovim, filename: string): Promise<any> {
+    const buffers = await nvim.buffers;
+    for (const buffer of buffers) {
+      const name = await buffer.name;
+      if (name.endsWith(filename)) {
+        return buffer;
+      }
+    }
+    throw new NeovimValidationError(`Buffer not found: ${filename}`);
+  }
+
+  // Resource handler methods
+
+  public async getProjectStructure(): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      const cwd = await nvim.eval('getcwd()') as string;
+      
+      // Use find command to get project structure
+      const output = await nvim.eval(`systemlist('find . -type f -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.lua" -o -name "*.vim" -o -name "*.md" | head -100')`) as string[];
+      
+      let result = `Project: ${cwd}\n\nFiles:\n`;
+      for (const file of output) {
+        result += `  ${file}\n`;
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting project structure:', error);
+      return 'Error: Could not get project structure';
+    }
+  }
+
+  public async getGitStatus(): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      
+      // Check if git is available
+      const hasGit = await nvim.eval('executable("git")') as number;
+      if (!hasGit) {
+        return 'Git is not available';
+      }
+      
+      // Get git status
+      const status = await nvim.eval('system("git status --porcelain 2>/dev/null")') as string;
+      const shellError = await nvim.eval('v:shell_error') as number;
+      
+      if (shellError !== 0) {
+        return 'Not a git repository or git not available';
+      }
+      
+      if (!status || status.trim() === '') {
+        return 'Working tree clean';
+      }
+      
+      // Parse git status
+      const lines = status.split('\n').filter(line => line.length > 0);
+      let result = 'Git Status:\n\n';
+      
+      for (const line of lines) {
+        const statusCode = line.substring(0, 2);
+        const filename = line.substring(3);
+        let statusDesc = '';
+        
+        if (statusCode.includes('M')) statusDesc = 'Modified';
+        else if (statusCode.includes('A')) statusDesc = 'Added';
+        else if (statusCode.includes('D')) statusDesc = 'Deleted';
+        else if (statusCode.includes('R')) statusDesc = 'Renamed';
+        else if (statusCode.includes('C')) statusDesc = 'Copied';
+        else if (statusCode.includes('U')) statusDesc = 'Unmerged';
+        else if (statusCode.includes('?')) statusDesc = 'Untracked';
+        else statusDesc = 'Unknown';
+        
+        result += `${statusDesc}: ${filename}\n`;
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting git status:', error);
+      return 'Error getting git status';
+    }
+  }
+
+  public async getLspDiagnostics(): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      
+      // Get all diagnostics
+      const diagnostics = await nvim.eval('luaeval("vim.diagnostic.get()")') as any[];
+      
+      const diagnosticsByBuffer: { [key: string]: any[] } = {};
+      
+      for (const diag of diagnostics) {
+        const bufnr = diag.bufnr;
+        const buffers = await nvim.buffers;
+        const buffer = buffers.find((b: any) => b.id === bufnr);
+        const bufferName = buffer ? await buffer.name : `Buffer ${bufnr}`;
+        
+        if (!diagnosticsByBuffer[bufferName]) {
+          diagnosticsByBuffer[bufferName] = [];
+        }
+        
+        diagnosticsByBuffer[bufferName].push({
+          line: diag.lnum + 1,
+          column: diag.col + 1,
+          severity: ['Error', 'Warning', 'Information', 'Hint'][diag.severity - 1] || 'Unknown',
+          message: diag.message,
+          source: diag.source || 'LSP',
+        });
+      }
+      
+      return JSON.stringify({
+        totalCount: diagnostics.length,
+        diagnostics: diagnosticsByBuffer,
+      }, null, 2);
+    } catch (error) {
+      console.error('Error getting LSP diagnostics:', error);
+      return JSON.stringify({ error: 'Could not get LSP diagnostics', totalCount: 0, diagnostics: {} });
+    }
+  }
+
+  public async getVimOptions(): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      
+      const options = {
+        general: {
+          encoding: await nvim.getOption('encoding'),
+          fileformat: await nvim.getOption('fileformat'),
+          filetype: await nvim.getOption('filetype'),
+          modifiable: await nvim.getOption('modifiable'),
+          readonly: await nvim.getOption('readonly'),
+          modified: await nvim.getOption('modified'),
+        },
+        editor: {
+          tabstop: await nvim.getOption('tabstop'),
+          shiftwidth: await nvim.getOption('shiftwidth'),
+          expandtab: await nvim.getOption('expandtab'),
+          smartindent: await nvim.getOption('smartindent'),
+          autoindent: await nvim.getOption('autoindent'),
+          wrap: await nvim.getOption('wrap'),
+          number: await nvim.getOption('number'),
+          relativenumber: await nvim.getOption('relativenumber'),
+        },
+        search: {
+          ignorecase: await nvim.getOption('ignorecase'),
+          smartcase: await nvim.getOption('smartcase'),
+          hlsearch: await nvim.getOption('hlsearch'),
+          incsearch: await nvim.getOption('incsearch'),
+        },
+        ui: {
+          colorscheme: await nvim.eval('execute("colorscheme")') as string,
+          background: await nvim.getOption('background'),
+          termguicolors: await nvim.getOption('termguicolors'),
+        },
+      };
+      
+      return JSON.stringify(options, null, 2);
+    } catch (error) {
+      console.error('Error getting vim options:', error);
+      return JSON.stringify({ error: 'Could not get vim options' });
+    }
+  }
+
+  public async getRelatedFiles(): Promise<string> {
+    try {
+      const result = await this.analyzeRelatedFiles();
+      const analysis = JSON.parse(result);
+      
+      // For each import, try to find the actual file
+      const relatedFiles: any[] = [];
+      const nvim = await this.connect();
+      const cwd = await nvim.eval('getcwd()') as string;
+      
+      for (const importPath of analysis.imports) {
+        // Try to resolve the import to an actual file
+        const possiblePaths = [
+          importPath,
+          `${importPath}.js`,
+          `${importPath}.ts`,
+          `${importPath}.lua`,
+          `${importPath}.py`,
+          `${importPath}/index.js`,
+          `${importPath}/index.ts`,
+        ];
+        
+        for (const path of possiblePaths) {
+          const exists = await nvim.eval(`filereadable("${path}")`) as number;
+          if (exists) {
+            relatedFiles.push({
+              import: importPath,
+              resolvedPath: path,
+              exists: true,
+            });
+            break;
+          }
+        }
+      }
+      
+      return JSON.stringify({
+        currentFile: analysis.file,
+        language: analysis.language,
+        relatedFiles,
+        importCount: analysis.importCount,
+      }, null, 2);
+    } catch (error) {
+      console.error('Error getting related files:', error);
+      return JSON.stringify({ error: 'Could not get related files' });
+    }
+  }
+
+  public async getRecentFiles(): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      
+      // Get oldfiles (recently opened files)
+      const oldfiles = await nvim.eval('v:oldfiles') as string[];
+      const cwd = await nvim.eval('getcwd()') as string;
+      
+      // Filter to only files in current project
+      const projectFiles = oldfiles
+        .filter(file => file.startsWith(cwd))
+        .slice(0, 20)
+        .map(file => ({
+          path: file,
+          relativePath: file.replace(cwd + '/', ''),
+        }));
+      
+      return JSON.stringify({
+        cwd,
+        count: projectFiles.length,
+        recentFiles: projectFiles,
+      }, null, 2);
+    } catch (error) {
+      console.error('Error getting recent files:', error);
+      return JSON.stringify({ error: 'Could not get recent files' });
+    }
+  }
+
+  public async getWorkspaceContext(): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      
+      // Gather comprehensive workspace context
+      const context = {
+        cwd: await nvim.eval('getcwd()') as string,
+        currentBuffer: {
+          name: await (await nvim.buffer).name,
+          filetype: await (await nvim.buffer).getOption('filetype'),
+          modified: await (await nvim.buffer).getOption('modified'),
+        },
+        buffers: await this.getOpenBuffers(),
+        recentFiles: JSON.parse(await this.getRecentFiles()),
+        gitStatus: await this.getGitStatus(),
+        diagnosticSummary: {
+          errors: await nvim.eval('luaeval("#vim.tbl_filter(function(d) return d.severity == 1 end, vim.diagnostic.get())")') as number,
+          warnings: await nvim.eval('luaeval("#vim.tbl_filter(function(d) return d.severity == 2 end, vim.diagnostic.get())")') as number,
+        },
+        mode: (await nvim.mode).mode,
+      };
+      
+      return JSON.stringify(context, null, 2);
+    } catch (error) {
+      console.error('Error getting workspace context:', error);
+      return JSON.stringify({ error: 'Could not get workspace context' });
+    }
+  }
+
+  public async getSearchResults(): Promise<string> {
+    try {
+      const nvim = await this.connect();
+      
+      // Get quickfix list
+      const qflist = await nvim.eval('getqflist()') as any[];
+      
+      const results = qflist.map((item: any) => ({
+        filename: item.filename || `Buffer ${item.bufnr}`,
+        line: item.lnum,
+        column: item.col,
+        text: item.text,
+        type: item.type || '',
+      }));
+      
+      // Also get location list for current window
+      const loclist = await nvim.eval('getloclist(0)') as any[];
+      
+      const locationResults = loclist.map((item: any) => ({
+        filename: item.filename || `Buffer ${item.bufnr}`,
+        line: item.lnum,
+        column: item.col,
+        text: item.text,
+        type: item.type || '',
+      }));
+      
+      return JSON.stringify({
+        quickfix: {
+          count: results.length,
+          results,
+        },
+        locationList: {
+          count: locationResults.length,
+          results: locationResults,
+        },
+      }, null, 2);
+    } catch (error) {
+      console.error('Error getting search results:', error);
+      return JSON.stringify({ error: 'Could not get search results' });
+    }
+  }
 }

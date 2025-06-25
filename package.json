@@ -9,7 +9,6 @@
 	"files": ["build", "src", "tsconfig.json"],
 	"scripts": {
 		"build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
-		"postinstall": "npm run build",
 		"watch": "tsc --watch",
 		"inspector": "npx @modelcontextprotocol/inspector build/index.js"
 	},

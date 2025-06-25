@@ -6,10 +6,10 @@
 	"bin": {
 		"mcp-neovim-server": "build/index.js"
 	},
-	"files": ["build"],
+	"files": ["build", "src", "tsconfig.json"],
 	"scripts": {
 		"build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
-		"prepare": "npm run build",
+		"postinstall": "npm run build",
 		"watch": "tsc --watch",
 		"inspector": "npx @modelcontextprotocol/inspector build/index.js"
 	},

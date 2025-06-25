@@ -1,5 +1,5 @@
 {
-	"name": "@thatguyinabeanie/mcp-neovim-server",
+	"name": "mcp-neovim-server",
 	"version": "0.6.0",
 	"description": "Enhanced MCP server for neovim with additional tools and resources",
 	"type": "module",

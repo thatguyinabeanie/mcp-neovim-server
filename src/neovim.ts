@@ -213,25 +213,32 @@ export class NeovimManager {
       const tabpage = await nvim.tabpage;
       const currentTab = await tabpage.number;
 
-      // Get marks (a-z)
+      // Get marks (a-z) - only include set marks
       const marks: { [key: string]: [number, number] } = {};
       for (const mark of 'abcdefghijklmnopqrstuvwxyz') {
         try {
           const pos = await nvim.eval(`getpos("'${mark}")`) as [number, number, number, number];
-          marks[mark] = [pos[1], pos[2]];
+          // Only include marks that are actually set (not at position 0,0)
+          if (pos[1] > 0 && pos[2] > 0) {
+            marks[mark] = [pos[1], pos[2]];
+          }
         } catch (e) {
           // Mark not set
         }
       }
 
-      // Get registers (a-z, ", 0-9)
+      // Get registers (a-z, ", 0-9) - only include non-empty registers
       const registers: { [key: string]: string } = {};
       const registerNames = [...'abcdefghijklmnopqrstuvwxyz', '"', ...Array(10).keys()];
       for (const reg of registerNames) {
         try {
-          registers[reg] = String(await nvim.eval(`getreg('${reg}')`));
+          const content = String(await nvim.eval(`getreg('${reg}')`));
+          // Only include registers that have content
+          if (content && content.trim().length > 0) {
+            registers[String(reg)] = content;
+          }
         } catch (e) {
-          // Register empty
+          // Register empty or error
         }
       }
 
@@ -243,8 +250,8 @@ export class NeovimManager {
       let pluginInfo = '';
       
       try {
-        // Get LSP clients if available
-        const lspClients = await nvim.eval('luaeval("vim.lsp.get_active_clients()")');
+        // Get LSP clients if available (use new API for Neovim >=0.10)
+        const lspClients = await nvim.eval('luaeval("vim.lsp.get_clients()")');
         if (Array.isArray(lspClients) && lspClients.length > 0) {
           const clientNames = lspClients.map((client: any) => client.name || 'unknown').join(', ');
           lspInfo = `Active LSP clients: ${clientNames}`;
@@ -288,14 +295,72 @@ export class NeovimManager {
       };
 
       if (mode.mode.startsWith('v')) {
-        const start = await nvim.eval(`getpos("'<")`) as [number, number, number, number];
-        const end = await nvim.eval(`getpos("'>")`) as [number, number, number, number];
-        const lines = await buffer.getLines({
-          start: start[1] - 1,
-          end: end[1],
-          strictIndexing: true
-        });
-        neovimStatus.visualSelection = lines.join('\n');
+        try {
+          // Use a more reliable method to get the visual selection
+          // This Lua code gets the actual selected text
+          const visualText = await nvim.lua(`
+            local mode = vim.fn.visualmode()
+            if mode == '' then
+              return ''
+            end
+            
+            -- Save current register content
+            local save_reg = vim.fn.getreg('"')
+            local save_regtype = vim.fn.getregtype('"')
+            
+            -- Yank the visual selection to unnamed register
+            vim.cmd('normal! "vy')
+            
+            -- Get the yanked text
+            local selected_text = vim.fn.getreg('"')
+            
+            -- Restore the register
+            vim.fn.setreg('"', save_reg, save_regtype)
+            
+            return selected_text
+          `);
+          
+          neovimStatus.visualSelection = String(visualText || '');
+        } catch (e) {
+          // Fallback method using getpos and getline
+          try {
+            const start = await nvim.eval(`getpos("'<")`) as [number, number, number, number];
+            const end = await nvim.eval(`getpos("'>")`) as [number, number, number, number];
+            
+            if (start[1] === end[1]) {
+              // Single line selection
+              const line = await nvim.eval(`getline(${start[1]})`) as string;
+              const startCol = start[2] - 1; // Convert to 0-based
+              const endCol = end[2]; // Keep 1-based for substring end
+              neovimStatus.visualSelection = line.substring(startCol, endCol);
+            } else {
+              // Multi-line selection
+              const lines = await nvim.eval(`getline(${start[1]}, ${end[1]})`) as string[];
+              if (lines && lines.length > 0) {
+                const result = [];
+                const startCol = start[2] - 1;
+                const endCol = end[2];
+                
+                // First line: from start column to end
+                result.push(lines[0].substring(startCol));
+                
+                // Middle lines: complete lines
+                for (let i = 1; i < lines.length - 1; i++) {
+                  result.push(lines[i]);
+                }
+                
+                // Last line: from beginning to end column
+                if (lines.length > 1) {
+                  result.push(lines[lines.length - 1].substring(0, endCol));
+                }
+                
+                neovimStatus.visualSelection = result.join('\n');
+              }
+            }
+          } catch (e2) {
+            neovimStatus.visualSelection = '';
+          }
+        }
       }
 
       return neovimStatus;

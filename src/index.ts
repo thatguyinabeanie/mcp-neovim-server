@@ -12,7 +12,7 @@ import { z } from "zod";
 const server = new McpServer(
   {
     name: "mcp-neovim-server",
-    version: "0.5.2"
+    version: "0.5.3"
   }
 );
 
@@ -244,7 +244,7 @@ server.tool(
   "vim_register",
   "Manage Neovim register contents",
   {
-    register: z.string().regex(/^[a-z\"]$/).describe("Register name - a lowercase letter [a-z] or double-quote [\"] for the unnamed register"),
+    register: z.string().regex(/^[a-z"]$/).describe("Register name - a lowercase letter [a-z] or double-quote [\"] for the unnamed register"),
     content: z.string().describe("The text content to store in the specified register")
   },
   async ({ register, content }) => {

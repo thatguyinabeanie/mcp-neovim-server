@@ -129,7 +129,13 @@ The server implements comprehensive error handling with custom error classes and
 - `ALLOW_SHELL_COMMANDS`: Set to 'true' to enable shell command execution (e.g. `!ls`). Defaults to false for security.
 - `NVIM_SOCKET_PATH`: Set to the path of your Neovim socket. Defaults to '/tmp/nvim' if not specified.
 
-## Usage with Claude Desktop
+## Installation
+
+### Option 1: DXT Package (Recommended)
+1. Download the latest `.dxt` file from [Releases](https://github.com/bigcodegen/mcp-neovim-server/releases)
+2. Drag the file to Claude Desktop
+
+### Option 2: Manual Installation
 Add this to your `claude_desktop_config.json`:
 ```json
 {

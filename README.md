@@ -2,7 +2,7 @@
 
 Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MCP and the official neovim/node-client JavaScript library. This server leverages Vim's native text editing commands and workflows, which Claude already understands, to create a lightweight code or general purpose AI text assistance layer.
 
-**Version 0.5.2** - Now with comprehensive error handling, improved MCP compliance, and helpful workflow prompts!
+**Version 0.5.3** - Now with a DXT package!
 
 <a href="https://glama.ai/mcp/servers/s0fywdwp87"><img width="380" height="200" src="https://glama.ai/mcp/servers/s0fywdwp87/badge" alt="mcp-neovim-server MCP server" /></a>
 

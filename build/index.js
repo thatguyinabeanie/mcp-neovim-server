@@ -13,7 +13,7 @@ const server = new McpServer({
 });
 const neovimManager = NeovimManager.getInstance();
 // Register resources
-server.resource("session", new ResourceTemplate("nvim://session", {
+server.registerResource("session", new ResourceTemplate("nvim://session", {
     list: () => ({
         resources: [
             {
@@ -24,7 +24,11 @@ server.resource("session", new ResourceTemplate("nvim://session", {
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Current neovim session",
+    description: "Current neovim text editor session",
+    mimeType: "text/plain",
+}, async (uri) => {
     const bufferContents = await neovimManager.getBufferContents();
     return {
         contents: [
@@ -38,7 +42,7 @@ server.resource("session", new ResourceTemplate("nvim://session", {
         ],
     };
 });
-server.resource("buffers", new ResourceTemplate("nvim://buffers", {
+server.registerResource("buffers", new ResourceTemplate("nvim://buffers", {
     list: () => ({
         resources: [
             {
@@ -49,7 +53,11 @@ server.resource("buffers", new ResourceTemplate("nvim://buffers", {
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Open Neovim buffers",
+    description: "List of all open buffers in the current Neovim session",
+    mimeType: "application/json",
+}, async (uri) => {
     const openBuffers = await neovimManager.getOpenBuffers();
     return {
         contents: [
@@ -62,7 +70,7 @@ server.resource("buffers", new ResourceTemplate("nvim://buffers", {
     };
 });
 // Enhanced resources from claude-code.nvim
-server.resource("project-structure", new ResourceTemplate("nvim://project-structure", {
+server.registerResource("project-structure", new ResourceTemplate("nvim://project-structure", {
     list: () => ({
         resources: [
             {
@@ -73,7 +81,11 @@ server.resource("project-structure", new ResourceTemplate("nvim://project-struct
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Project structure",
+    description: "File tree of the current working directory",
+    mimeType: "text/plain",
+}, async (uri) => {
     const projectStructure = await neovimManager.getProjectStructure();
     return {
         contents: [
@@ -85,7 +97,7 @@ server.resource("project-structure", new ResourceTemplate("nvim://project-struct
         ],
     };
 });
-server.resource("git-status", new ResourceTemplate("nvim://git-status", {
+server.registerResource("git-status", new ResourceTemplate("nvim://git-status", {
     list: () => ({
         resources: [
             {
@@ -96,7 +108,11 @@ server.resource("git-status", new ResourceTemplate("nvim://git-status", {
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Git status",
+    description: "Current git repository status",
+    mimeType: "text/plain",
+}, async (uri) => {
     const gitStatus = await neovimManager.getGitStatus();
     return {
         contents: [
@@ -108,7 +124,7 @@ server.resource("git-status", new ResourceTemplate("nvim://git-status", {
         ],
     };
 });
-server.resource("lsp-diagnostics", new ResourceTemplate("nvim://lsp-diagnostics", {
+server.registerResource("lsp-diagnostics", new ResourceTemplate("nvim://lsp-diagnostics", {
     list: () => ({
         resources: [
             {
@@ -119,7 +135,11 @@ server.resource("lsp-diagnostics", new ResourceTemplate("nvim://lsp-diagnostics"
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "LSP diagnostics",
+    description: "Current LSP diagnostics for all buffers",
+    mimeType: "application/json",
+}, async (uri) => {
     const diagnostics = await neovimManager.getLspDiagnostics();
     return {
         contents: [
@@ -131,7 +151,7 @@ server.resource("lsp-diagnostics", new ResourceTemplate("nvim://lsp-diagnostics"
         ],
     };
 });
-server.resource("vim-options", new ResourceTemplate("nvim://vim-options", {
+server.registerResource("vim-options", new ResourceTemplate("nvim://vim-options", {
     list: () => ({
         resources: [
             {
@@ -142,7 +162,11 @@ server.resource("vim-options", new ResourceTemplate("nvim://vim-options", {
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Vim options",
+    description: "Current Neovim configuration and options",
+    mimeType: "application/json",
+}, async (uri) => {
     const options = await neovimManager.getVimOptions();
     return {
         contents: [
@@ -154,7 +178,7 @@ server.resource("vim-options", new ResourceTemplate("nvim://vim-options", {
         ],
     };
 });
-server.resource("related-files", new ResourceTemplate("nvim://related-files", {
+server.registerResource("related-files", new ResourceTemplate("nvim://related-files", {
     list: () => ({
         resources: [
             {
@@ -165,7 +189,11 @@ server.resource("related-files", new ResourceTemplate("nvim://related-files", {
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Related files",
+    description: "Files related to current buffer through imports/requires",
+    mimeType: "application/json",
+}, async (uri) => {
     const relatedFiles = await neovimManager.getRelatedFiles();
     return {
         contents: [
@@ -177,7 +205,7 @@ server.resource("related-files", new ResourceTemplate("nvim://related-files", {
         ],
     };
 });
-server.resource("recent-files", new ResourceTemplate("nvim://recent-files", {
+server.registerResource("recent-files", new ResourceTemplate("nvim://recent-files", {
     list: () => ({
         resources: [
             {
@@ -188,7 +216,11 @@ server.resource("recent-files", new ResourceTemplate("nvim://recent-files", {
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Recent files",
+    description: "Recently accessed files in current project",
+    mimeType: "application/json",
+}, async (uri) => {
     const recentFiles = await neovimManager.getRecentFiles();
     return {
         contents: [
@@ -200,7 +232,7 @@ server.resource("recent-files", new ResourceTemplate("nvim://recent-files", {
         ],
     };
 });
-server.resource("visual-selection", new ResourceTemplate("nvim://visual-selection", {
+server.registerResource("visual-selection", new ResourceTemplate("nvim://visual-selection", {
     list: () => ({
         resources: [
             {
@@ -211,7 +243,11 @@ server.resource("visual-selection", new ResourceTemplate("nvim://visual-selectio
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Visual selection",
+    description: "Currently selected text or last visual selection",
+    mimeType: "application/json",
+}, async (uri) => {
     const selection = await neovimManager.getCurrentSelection(true);
     return {
         contents: [
@@ -223,7 +259,7 @@ server.resource("visual-selection", new ResourceTemplate("nvim://visual-selectio
         ],
     };
 });
-server.resource("workspace-context", new ResourceTemplate("nvim://workspace-context", {
+server.registerResource("workspace-context", new ResourceTemplate("nvim://workspace-context", {
     list: () => ({
         resources: [
             {
@@ -234,7 +270,11 @@ server.resource("workspace-context", new ResourceTemplate("nvim://workspace-cont
             },
         ],
     }),
-}), async (uri) => {
+}), {
+    title: "Workspace context",
+    description: "Enhanced workspace context with all related information",
+    mimeType: "application/json",
+}, async (uri) => {
     const context = await neovimManager.getWorkspaceContext();
     return {
         contents: [
@@ -270,7 +310,11 @@ server.resource("search-results", new ResourceTemplate("nvim://search-results", 
     };
 });
 // Register resource-based tools
-server.tool("vim_get_session", "Get current Neovim session details including buffer contents", {}, async () => {
+server.registerTool("vim_get_session", {
+    title: "Get current Neovim session details including buffer contents",
+    description: "Get current Neovim session details including buffer contents",
+    inputSchema: {},
+}, async () => {
     try {
         const bufferContents = await neovimManager.getBufferContents();
         return {
@@ -295,7 +339,11 @@ server.tool("vim_get_session", "Get current Neovim session details including buf
         };
     }
 });
-server.tool("vim_get_buffers", "Get a list of all open buffers in the current Neovim session", {}, async () => {
+server.registerTool("vim_get_buffers", {
+    title: "Get a list of all open buffers in the current Neovim session",
+    description: "Get a list of all open buffers in the current Neovim session",
+    inputSchema: {},
+}, async () => {
     try {
         const openBuffers = await neovimManager.getOpenBuffers();
         return {
@@ -318,7 +366,11 @@ server.tool("vim_get_buffers", "Get a list of all open buffers in the current Ne
         };
     }
 });
-server.tool("vim_get_project_structure", "Get the file tree of the current working directory", {}, async () => {
+server.registerTool("vim_get_project_structure", {
+    title: "Get the file tree of the current working directory",
+    description: "Get the file tree of the current working directory",
+    inputSchema: {},
+}, async () => {
     try {
         const projectStructure = await neovimManager.getProjectStructure();
         return {
@@ -343,7 +395,11 @@ server.tool("vim_get_project_structure", "Get the file tree of the current worki
         };
     }
 });
-server.tool("vim_get_git_status", "Get the current git repository status", {}, async () => {
+server.registerTool("vim_get_git_status", {
+    title: "Get the current git repository status",
+    description: "Get the current git repository status",
+    inputSchema: {},
+}, async () => {
     try {
         const gitStatus = await neovimManager.getGitStatus();
         return {
@@ -368,7 +424,11 @@ server.tool("vim_get_git_status", "Get the current git repository status", {}, a
         };
     }
 });
-server.tool("vim_get_lsp_diagnostics", "Get current LSP diagnostics for all buffers", {}, async () => {
+server.registerTool("vim_get_lsp_diagnostics", {
+    title: "Get current LSP diagnostics for all buffers",
+    description: "Get current LSP diagnostics for all buffers",
+    inputSchema: {},
+}, async () => {
     try {
         const diagnostics = await neovimManager.getLspDiagnostics();
         return {
@@ -393,7 +453,11 @@ server.tool("vim_get_lsp_diagnostics", "Get current LSP diagnostics for all buff
         };
     }
 });
-server.tool("vim_get_vim_options", "Get current Neovim configuration and options", {}, async () => {
+server.registerTool("vim_get_vim_options", {
+    title: "Get current Neovim configuration and options",
+    description: "Get current Neovim configuration and options",
+    inputSchema: {},
+}, async () => {
     try {
         const options = await neovimManager.getVimOptions();
         return {
@@ -418,7 +482,11 @@ server.tool("vim_get_vim_options", "Get current Neovim configuration and options
         };
     }
 });
-server.tool("vim_get_related_files", "Get files related to current buffer through imports/requires", {}, async () => {
+server.registerTool("vim_get_related_files", {
+    title: "Get files related to current buffer through imports/requires",
+    description: "Get files related to current buffer through imports/requires",
+    inputSchema: {},
+}, async () => {
     try {
         const relatedFiles = await neovimManager.getRelatedFiles();
         return {
@@ -443,7 +511,11 @@ server.tool("vim_get_related_files", "Get files related to current buffer throug
         };
     }
 });
-server.tool("vim_get_recent_files", "Get recently accessed files in current project", {}, async () => {
+server.registerTool("vim_get_recent_files", {
+    title: "Get recently accessed files in current project",
+    description: "Get recently accessed files in current project",
+    inputSchema: {},
+}, async () => {
     try {
         const recentFiles = await neovimManager.getRecentFiles();
         return {
@@ -468,7 +540,11 @@ server.tool("vim_get_recent_files", "Get recently accessed files in current proj
         };
     }
 });
-server.tool("vim_get_visual_selection", "Get currently selected text or last visual selection", {}, async () => {
+server.registerTool("vim_get_visual_selection", {
+    title: "Get currently selected text or last visual selection",
+    description: "Get currently selected text or last visual selection",
+    inputSchema: {},
+}, async () => {
     try {
         const selection = await neovimManager.getCurrentSelection(true);
         return {
@@ -493,7 +569,11 @@ server.tool("vim_get_visual_selection", "Get currently selected text or last vis
         };
     }
 });
-server.tool("vim_get_workspace_context", "Get enhanced workspace context with all related information", {}, async () => {
+server.registerTool("vim_get_workspace_context", {
+    title: "Get enhanced workspace context with all related information",
+    description: "Get enhanced workspace context with all related information",
+    inputSchema: {},
+}, async () => {
     try {
         const context = await neovimManager.getWorkspaceContext();
         return {
@@ -518,7 +598,11 @@ server.tool("vim_get_workspace_context", "Get enhanced workspace context with al
         };
     }
 });
-server.tool("vim_get_search_results", "Get current search results and quickfix list", {}, async () => {
+server.registerTool("vim_get_search_results", {
+    title: "Get current search results and quickfix list",
+    description: "Get current search results and quickfix list",
+    inputSchema: {},
+}, async () => {
     try {
         const results = await neovimManager.getSearchResults();
         return {
@@ -544,11 +628,15 @@ server.tool("vim_get_search_results", "Get current search results and quickfix l
     }
 });
 // Register tools with proper parameter schemas
-server.tool("vim_buffer", "Get buffer contents with line numbers", {
-    filename: z
-        .string()
-        .optional()
-        .describe("Optional file name to view a specific buffer"),
+server.registerTool("vim_buffer", {
+    title: "Get buffer contents with line numbers",
+    description: "Get buffer contents with line numbers",
+    inputSchema: {
+        filename: z
+            .string()
+            .optional()
+            .describe("Optional file name to view a specific buffer"),
+    },
 }, async ({ filename }) => {
     try {
         const bufferContents = await neovimManager.getBufferContents(filename);
@@ -576,10 +664,14 @@ server.tool("vim_buffer", "Get buffer contents with line numbers", {
         };
     }
 });
-server.tool("vim_command", "Execute Vim commands with optional shell command support", {
-    command: z
-        .string()
-        .describe("Vim command to execute (use ! prefix for shell commands if enabled)"),
+server.registerTool("vim_command", {
+    title: "Execute Vim commands with optional shell command support",
+    description: "Execute Vim commands with optional shell command support",
+    inputSchema: {
+        command: z
+            .string()
+            .describe("Vim command to execute (use ! prefix for shell commands if enabled)"),
+    },
 }, async ({ command }) => {
     try {
         // Check if this is a shell command
@@ -619,7 +711,11 @@ server.tool("vim_command", "Execute Vim commands with optional shell command sup
         };
     }
 });
-server.tool("vim_status", "Get comprehensive Neovim status including cursor position, mode, marks, and registers", {}, async () => {
+server.registerTool("vim_status", {
+    title: "Get comprehensive Neovim status including cursor position, mode, marks, and registers",
+    description: "Get comprehensive Neovim status including cursor position, mode, marks, and registers",
+    inputSchema: {},
+}, async () => {
     try {
         const status = await neovimManager.getNeovimStatus();
         return {
@@ -644,16 +740,20 @@ server.tool("vim_status", "Get comprehensive Neovim status including cursor posi
         };
     }
 });
-server.tool("vim_edit", "Edit buffer content using insert, replace, or replaceAll modes", {
-    startLine: z
-        .number()
-        .describe("The line number where editing should begin (1-indexed)"),
-    mode: z
-        .enum(["insert", "replace", "replaceAll"])
-        .describe("Whether to insert new content, replace existing content, or replace entire buffer"),
-    lines: z
-        .string()
-        .describe("The text content to insert or use as replacement"),
+server.registerTool("vim_edit", {
+    title: "Edit buffer content using insert, replace, or replaceAll modes",
+    description: "Edit buffer content using insert, replace, or replaceAll modes",
+    inputSchema: {
+        startLine: z
+            .number()
+            .describe("The line number where editing should begin (1-indexed)"),
+        mode: z
+            .enum(["insert", "replace", "replaceAll"])
+            .describe("Whether to insert new content, replace existing content, or replace entire buffer"),
+        lines: z
+            .string()
+            .describe("The text content to insert or use as replacement"),
+    },
 }, async ({ startLine, mode, lines }) => {
     try {
         const result = await neovimManager.editLines(startLine, mode, lines);
@@ -677,19 +777,23 @@ server.tool("vim_edit", "Edit buffer content using insert, replace, or replaceAl
         };
     }
 });
-server.tool("vim_window", "Manage Neovim windows: split, close, and navigate between windows", {
-    command: z
-        .enum([
-        "split",
-        "vsplit",
-        "only",
-        "close",
-        "wincmd h",
-        "wincmd j",
-        "wincmd k",
-        "wincmd l",
-    ])
-        .describe("Window manipulation command: split or vsplit to create new window, only to keep just current window, close to close current window, or wincmd with h/j/k/l to navigate between windows"),
+server.registerTool("vim_window", {
+    title: "Manage Neovim windows: split, close, and navigate between windows",
+    description: "Manage Neovim windows: split, close, and navigate between windows",
+    inputSchema: {
+        command: z
+            .enum([
+            "split",
+            "vsplit",
+            "only",
+            "close",
+            "wincmd h",
+            "wincmd j",
+            "wincmd k",
+            "wincmd l",
+        ])
+            .describe("Window manipulation command: split or vsplit to create new window, only to keep just current window, close to close current window, or wincmd with h/j/k/l to navigate between windows"),
+    },
 }, async ({ command }) => {
     try {
         const result = await neovimManager.manipulateWindow(command);
@@ -715,17 +819,21 @@ server.tool("vim_window", "Manage Neovim windows: split, close, and navigate bet
         };
     }
 });
-server.tool("vim_mark", "Set named marks at specific positions in the buffer", {
-    mark: z
-        .string()
-        .regex(/^[a-z]$/)
-        .describe("Single lowercase letter [a-z] to use as the mark name"),
-    line: z
-        .number()
-        .describe("The line number where the mark should be placed (1-indexed)"),
-    column: z
-        .number()
-        .describe("The column number where the mark should be placed (0-indexed)"),
+server.registerTool("vim_mark", {
+    title: "Set named marks at specific positions in the buffer",
+    description: "Set named marks at specific positions in the buffer",
+    inputSchema: {
+        mark: z
+            .string()
+            .regex(/^[a-z]$/)
+            .describe("Single lowercase letter [a-z] to use as the mark name"),
+        line: z
+            .number()
+            .describe("The line number where the mark should be placed (1-indexed)"),
+        column: z
+            .number()
+            .describe("The column number where the mark should be placed (0-indexed)"),
+    },
 }, async ({ mark, line, column }) => {
     try {
         const result = await neovimManager.setMark(mark, line, column);
@@ -749,14 +857,18 @@ server.tool("vim_mark", "Set named marks at specific positions in the buffer", {
         };
     }
 });
-server.tool("vim_register", "Manage Neovim register contents", {
-    register: z
-        .string()
-        .regex(/^[a-z\"]$/)
-        .describe('Register name - a lowercase letter [a-z] or double-quote ["] for the unnamed register'),
-    content: z
-        .string()
-        .describe("The text content to store in the specified register"),
+server.registerTool("vim_register", {
+    title: "Manage Neovim register contents",
+    description: "Manage Neovim register contents",
+    inputSchema: {
+        register: z
+            .string()
+            .regex(/^[a-z\"]$/)
+            .describe('Register name - a lowercase letter [a-z] or double-quote ["] for the unnamed register'),
+        content: z
+            .string()
+            .describe("The text content to store in the specified register"),
+    },
 }, async ({ register, content }) => {
     try {
         const result = await neovimManager.setRegister(register, content);
@@ -780,19 +892,23 @@ server.tool("vim_register", "Manage Neovim register contents", {
         };
     }
 });
-server.tool("vim_visual", "Create visual mode selections in the buffer", {
-    startLine: z
-        .number()
-        .describe("The starting line number for visual selection (1-indexed)"),
-    startColumn: z
-        .number()
-        .describe("The starting column number for visual selection (0-indexed)"),
-    endLine: z
-        .number()
-        .describe("The ending line number for visual selection (1-indexed)"),
-    endColumn: z
-        .number()
-        .describe("The ending column number for visual selection (0-indexed)"),
+server.registerTool("vim_visual", {
+    title: "Create visual mode selections in the buffer",
+    description: "Create visual mode selections in the buffer",
+    inputSchema: {
+        startLine: z
+            .number()
+            .describe("The starting line number for visual selection (1-indexed)"),
+        startColumn: z
+            .number()
+            .describe("The starting column number for visual selection (0-indexed)"),
+        endLine: z
+            .number()
+            .describe("The ending line number for visual selection (1-indexed)"),
+        endColumn: z
+            .number()
+            .describe("The ending column number for visual selection (0-indexed)"),
+    },
 }, async ({ startLine, startColumn, endLine, endColumn }) => {
     try {
         const result = await neovimManager.visualSelect(startLine, startColumn, endLine, endColumn);
@@ -819,10 +935,14 @@ server.tool("vim_visual", "Create visual mode selections in the buffer", {
     }
 });
 // New enhanced buffer management tools
-server.tool("vim_buffer_switch", "Switch between buffers by name or number", {
-    identifier: z
-        .union([z.string(), z.number()])
-        .describe("Buffer identifier - can be buffer number or filename/path"),
+server.registerTool("vim_buffer_switch", {
+    title: "Switch between buffers by name or number",
+    description: "Switch between buffers by name or number",
+    inputSchema: {
+        identifier: z
+            .union([z.string(), z.number()])
+            .describe("Buffer identifier - can be buffer number or filename/path"),
+    },
 }, async ({ identifier }) => {
     try {
         const result = await neovimManager.switchBuffer(identifier);
@@ -846,11 +966,15 @@ server.tool("vim_buffer_switch", "Switch between buffers by name or number", {
         };
     }
 });
-server.tool("vim_buffer_save", "Save current buffer or save to specific filename", {
-    filename: z
-        .string()
-        .optional()
-        .describe("Optional filename to save buffer to (defaults to current buffer's filename)"),
+server.registerTool("vim_buffer_save", {
+    title: "Save current buffer or save to specific filename",
+    description: "Save current buffer or save to specific filename",
+    inputSchema: {
+        filename: z
+            .string()
+            .optional()
+            .describe("Optional filename to save buffer to (defaults to current buffer's filename)"),
+    },
 }, async ({ filename }) => {
     try {
         const result = await neovimManager.saveBuffer(filename);
@@ -874,8 +998,12 @@ server.tool("vim_buffer_save", "Save current buffer or save to specific filename
         };
     }
 });
-server.tool("vim_file_open", "Open files into new buffers", {
-    filename: z.string().describe("Path to the file to open"),
+server.registerTool("vim_file_open", {
+    title: "Open files into new buffers",
+    description: "Open files into new buffers",
+    inputSchema: {
+        filename: z.string().describe("Path to the file to open"),
+    },
 }, async ({ filename }) => {
     try {
         const result = await neovimManager.openFile(filename);
@@ -900,16 +1028,20 @@ server.tool("vim_file_open", "Open files into new buffers", {
     }
 });
 // New search and replace tools
-server.tool("vim_search", "Search within current buffer with regex support and options", {
-    pattern: z.string().describe("Search pattern (supports regex)"),
-    ignoreCase: z
-        .boolean()
-        .optional()
-        .describe("Whether to ignore case in search (default: false)"),
-    wholeWord: z
-        .boolean()
-        .optional()
-        .describe("Whether to match whole words only (default: false)"),
+server.registerTool("vim_search", {
+    title: "Search within current buffer with regex support and options",
+    description: "Search within current buffer with regex support and options",
+    inputSchema: {
+        pattern: z.string().describe("Search pattern (supports regex)"),
+        ignoreCase: z
+            .boolean()
+            .optional()
+            .describe("Whether to ignore case in search (default: false)"),
+        wholeWord: z
+            .boolean()
+            .optional()
+            .describe("Whether to match whole words only (default: false)"),
+    },
 }, async ({ pattern, ignoreCase = false, wholeWord = false }) => {
     try {
         const result = await neovimManager.searchInBuffer(pattern, {
@@ -938,21 +1070,25 @@ server.tool("vim_search", "Search within current buffer with regex support and o
         };
     }
 });
-server.tool("vim_search_replace", "Find and replace with global, case-insensitive, and confirm options", {
-    pattern: z.string().describe("Search pattern (supports regex)"),
-    replacement: z.string().describe("Replacement text"),
-    global: z
-        .boolean()
-        .optional()
-        .describe("Replace all occurrences in each line (default: false)"),
-    ignoreCase: z
-        .boolean()
-        .optional()
-        .describe("Whether to ignore case in search (default: false)"),
-    confirm: z
-        .boolean()
-        .optional()
-        .describe("Whether to confirm each replacement (default: false)"),
+server.registerTool("vim_search_replace", {
+    title: "Find and replace with global, case-insensitive, and confirm options",
+    description: "Find and replace with global, case-insensitive, and confirm options",
+    inputSchema: {
+        pattern: z.string().describe("Search pattern (supports regex)"),
+        replacement: z.string().describe("Replacement text"),
+        global: z
+            .boolean()
+            .optional()
+            .describe("Replace all occurrences in each line (default: false)"),
+        ignoreCase: z
+            .boolean()
+            .optional()
+            .describe("Whether to ignore case in search (default: false)"),
+        confirm: z
+            .boolean()
+            .optional()
+            .describe("Whether to confirm each replacement (default: false)"),
+    },
 }, async ({ pattern, replacement, global = false, ignoreCase = false, confirm = false, }) => {
     try {
         const result = await neovimManager.searchAndReplace(pattern, replacement, { global, ignoreCase, confirm });
@@ -1287,10 +1423,21 @@ server.tool("vim_get_selection", "Get the currently selected text or last visual
     }
 });
 // Register a sample prompt for Neovim workflow assistance
-server.prompt("neovim_workflow", "Get help with common Neovim workflows and editing tasks", {
-    task: z
-        .enum(["editing", "navigation", "search", "buffers", "windows", "macros"])
-        .describe("Type of Neovim task you need help with"),
+server.registerPrompt("neovim_workflow", {
+    title: "Get help with common Neovim workflows and editing tasks",
+    description: "Get help with common Neovim workflows and editing tasks",
+    argsSchema: {
+        task: z
+            .enum([
+            "editing",
+            "navigation",
+            "search",
+            "buffers",
+            "windows",
+            "macros",
+        ])
+            .describe("Type of Neovim task you need help with"),
+    },
 }, async ({ task }) => {
     const workflows = {
         editing: "Here are common editing workflows:\n1. Use vim_edit with 'insert' mode to add new content\n2. Use vim_edit with 'replace' mode to modify existing lines\n3. Use vim_search_replace for find and replace operations\n4. Use vim_visual to select text ranges before operations",

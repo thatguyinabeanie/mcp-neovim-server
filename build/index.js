@@ -1114,12 +1114,16 @@ server.registerTool("vim_search_replace", {
         };
     }
 });
-server.tool("vim_grep", "Project-wide search using vimgrep with quickfix list", {
-    pattern: z.string().describe("Search pattern to grep for"),
-    filePattern: z
-        .string()
-        .optional()
-        .describe("File pattern to search in (default: **/* for all files)"),
+server.registerTool("vim_grep", {
+    title: "Project-wide search using vimgrep with quickfix list",
+    description: "Project-wide search using vimgrep with quickfix list",
+    inputSchema: {
+        pattern: z.string().describe("Search pattern to grep for"),
+        filePattern: z
+            .string()
+            .optional()
+            .describe("File pattern to search in (default: **/* for all files)"),
+    },
 }, async ({ pattern, filePattern = "**/*" }) => {
     try {
         const result = await neovimManager.grepInProject(pattern, filePattern);
@@ -1144,7 +1148,11 @@ server.tool("vim_grep", "Project-wide search using vimgrep with quickfix list", 
     }
 });
 // Health check tool
-server.tool("vim_health", "Check Neovim connection health", {}, async () => {
+server.registerTool("vim_health", {
+    title: "Check Neovim connection health",
+    description: "Check Neovim connection health",
+    inputSchema: {},
+}, async () => {
     const isHealthy = await neovimManager.healthCheck();
     return {
         content: [
@@ -1158,18 +1166,22 @@ server.tool("vim_health", "Check Neovim connection health", {}, async () => {
     };
 });
 // Macro management tool
-server.tool("vim_macro", "Record, stop, and play Neovim macros", {
-    action: z
-        .enum(["record", "stop", "play"])
-        .describe("Action to perform with macros"),
-    register: z
-        .string()
-        .optional()
-        .describe("Register to record/play macro (a-z, required for record/play)"),
-    count: z
-        .number()
-        .optional()
-        .describe("Number of times to play macro (default: 1)"),
+server.registerTool("vim_macro", {
+    title: "Record, stop, and play Neovim macros",
+    description: "Record, stop, and play Neovim macros",
+    inputSchema: {
+        action: z
+            .enum(["record", "stop", "play"])
+            .describe("Action to perform with macros"),
+        register: z
+            .string()
+            .optional()
+            .describe("Register to record/play macro (a-z, required for record/play)"),
+        count: z
+            .number()
+            .optional()
+            .describe("Number of times to play macro (default: 1)"),
+    },
 }, async ({ action, register, count = 1 }) => {
     try {
         const result = await neovimManager.manageMacro(action, register, count);
@@ -1194,11 +1206,15 @@ server.tool("vim_macro", "Record, stop, and play Neovim macros", {
     }
 });
 // Tab management tool
-server.tool("vim_tab", "Manage Neovim tabs: create, close, and navigate between tabs", {
-    action: z
-        .enum(["new", "close", "next", "prev", "first", "last", "list"])
-        .describe("Tab action to perform"),
-    filename: z.string().optional().describe("Filename for new tab (optional)"),
+server.registerTool("vim_tab", {
+    title: "Manage Neovim tabs: create, close, and navigate between tabs",
+    description: "Manage Neovim tabs: create, close, and navigate between tabs",
+    inputSchema: {
+        action: z
+            .enum(["new", "close", "next", "prev", "first", "last", "list"])
+            .describe("Tab action to perform"),
+        filename: z.string().optional().describe("Filename for new tab (optional)"),
+    },
 }, async ({ action, filename }) => {
     try {
         const result = await neovimManager.manageTab(action, filename);
@@ -1223,26 +1239,30 @@ server.tool("vim_tab", "Manage Neovim tabs: create, close, and navigate between 
     }
 });
 // Code folding tool
-server.tool("vim_fold", "Manage code folding: create, open, close, and toggle folds", {
-    action: z
-        .enum([
-        "create",
-        "open",
-        "close",
-        "toggle",
-        "openall",
-        "closeall",
-        "delete",
-    ])
-        .describe("Folding action to perform"),
-    startLine: z
-        .number()
-        .optional()
-        .describe("Start line for creating fold (required for create)"),
-    endLine: z
-        .number()
-        .optional()
-        .describe("End line for creating fold (required for create)"),
+server.registerTool("vim_fold", {
+    title: "Manage code folding: create, open, close, and toggle folds",
+    description: "Manage code folding: create, open, close, and toggle folds",
+    inputSchema: {
+        action: z
+            .enum([
+            "create",
+            "open",
+            "close",
+            "toggle",
+            "openall",
+            "closeall",
+            "delete",
+        ])
+            .describe("Folding action to perform"),
+        startLine: z
+            .number()
+            .optional()
+            .describe("Start line for creating fold (required for create)"),
+        endLine: z
+            .number()
+            .optional()
+            .describe("End line for creating fold (required for create)"),
+    },
 }, async ({ action, startLine, endLine }) => {
     try {
         const result = await neovimManager.manageFold(action, startLine, endLine);
@@ -1267,10 +1287,14 @@ server.tool("vim_fold", "Manage code folding: create, open, close, and toggle fo
     }
 });
 // Jump list navigation tool
-server.tool("vim_jump", "Navigate Neovim jump list: go back, forward, or list jumps", {
-    direction: z
-        .enum(["back", "forward", "list"])
-        .describe("Jump direction or list jumps"),
+server.registerTool("vim_jump", {
+    title: "Navigate Neovim jump list: go back, forward, or list jumps",
+    description: "Navigate Neovim jump list: go back, forward, or list jumps",
+    inputSchema: {
+        direction: z
+            .enum(["back", "forward", "list"])
+            .describe("Jump direction or list jumps"),
+    },
 }, async ({ direction }) => {
     try {
         const result = await neovimManager.navigateJumpList(direction);
@@ -1297,11 +1321,15 @@ server.tool("vim_jump", "Navigate Neovim jump list: go back, forward, or list ju
     }
 });
 // Enhanced tools from claude-code.nvim
-server.tool("vim_analyze_related", "Analyze files related through imports/requires in the current or specified buffer", {
-    filename: z
-        .string()
-        .optional()
-        .describe("Optional filename to analyze (defaults to current buffer)"),
+server.registerTool("vim_analyze_related", {
+    title: "Analyze files related through imports/requires in the current or specified buffer",
+    description: "Analyze files related through imports/requires in the current or specified buffer",
+    inputSchema: {
+        filename: z
+            .string()
+            .optional()
+            .describe("Optional filename to analyze (defaults to current buffer)"),
+    },
 }, async ({ filename }) => {
     try {
         const result = await neovimManager.analyzeRelatedFiles(filename);
@@ -1327,15 +1355,19 @@ server.tool("vim_analyze_related", "Analyze files related through imports/requir
         };
     }
 });
-server.tool("vim_find_symbols", "Find workspace symbols using LSP", {
-    query: z
-        .string()
-        .optional()
-        .describe("Symbol name to search for (empty for all symbols)"),
-    limit: z
-        .number()
-        .optional()
-        .describe("Maximum number of symbols to return (default: 20)"),
+server.registerTool("vim_find_symbols", {
+    title: "Find workspace symbols using LSP",
+    description: "Find workspace symbols using LSP",
+    inputSchema: {
+        query: z
+            .string()
+            .optional()
+            .describe("Symbol name to search for (empty for all symbols)"),
+        limit: z
+            .number()
+            .optional()
+            .describe("Maximum number of symbols to return (default: 20)"),
+    },
 }, async ({ query, limit }) => {
     try {
         const result = await neovimManager.findWorkspaceSymbols(query, limit);
@@ -1361,12 +1393,16 @@ server.tool("vim_find_symbols", "Find workspace symbols using LSP", {
         };
     }
 });
-server.tool("vim_search_files", "Search for files in the current project by pattern", {
-    pattern: z.string().describe("File name pattern to search for"),
-    includeContent: z
-        .boolean()
-        .optional()
-        .describe("Whether to include file content preview (default: false)"),
+server.registerTool("vim_search_files", {
+    title: "Search for files in the current project by pattern",
+    description: "Search for files in the current project by pattern",
+    inputSchema: {
+        pattern: z.string().describe("File name pattern to search for"),
+        includeContent: z
+            .boolean()
+            .optional()
+            .describe("Whether to include file content preview (default: false)"),
+    },
 }, async ({ pattern, includeContent }) => {
     try {
         const result = await neovimManager.searchProjectFiles(pattern, includeContent);
@@ -1392,11 +1428,15 @@ server.tool("vim_search_files", "Search for files in the current project by patt
         };
     }
 });
-server.tool("vim_get_selection", "Get the currently selected text or last visual selection from Neovim", {
-    includeContext: z
-        .boolean()
-        .optional()
-        .describe("Include surrounding context (5 lines before/after) (default: false)"),
+server.registerTool("vim_get_selection", {
+    title: "Get the currently selected text or last visual selection from Neovim",
+    description: "Get the currently selected text or last visual selection from Neovim",
+    inputSchema: {
+        includeContext: z
+            .boolean()
+            .optional()
+            .describe("Include surrounding context (5 lines before/after) (default: false)"),
+    },
 }, async ({ includeContext }) => {
     try {
         const result = await neovimManager.getCurrentSelection(includeContext);

@@ -1542,13 +1542,16 @@ server.registerTool(
 );
 
 // Jump list navigation tool
-server.tool(
+server.registerTool(
 	"vim_jump",
-	"Navigate Neovim jump list: go back, forward, or list jumps",
 	{
-		direction: z
-			.enum(["back", "forward", "list"])
-			.describe("Jump direction or list jumps"),
+		title: "Navigate Neovim jump list: go back, forward, or list jumps",
+		description: "Navigate Neovim jump list: go back, forward, or list jumps",
+		inputSchema: {
+			direction: z
+				.enum(["back", "forward", "list"])
+				.describe("Jump direction or list jumps"),
+		},
 	},
 	async ({ direction }) => {
 		try {
@@ -1578,14 +1581,17 @@ server.tool(
 );
 
 // Enhanced tools from claude-code.nvim
-server.tool(
+server.registerTool(
 	"vim_analyze_related",
-	"Analyze files related through imports/requires in the current or specified buffer",
 	{
-		filename: z
-			.string()
-			.optional()
-			.describe("Optional filename to analyze (defaults to current buffer)"),
+		title: "Analyze files related through imports/requires in the current or specified buffer",
+		description: "Analyze files related through imports/requires in the current or specified buffer",
+		inputSchema: {
+			filename: z
+				.string()
+				.optional()
+				.describe("Optional filename to analyze (defaults to current buffer)"),
+		},
 	},
 	async ({ filename }) => {
 		try {
@@ -1614,18 +1620,21 @@ server.tool(
 	},
 );
 
-server.tool(
+server.registerTool(
 	"vim_find_symbols",
-	"Find workspace symbols using LSP",
 	{
-		query: z
-			.string()
-			.optional()
-			.describe("Symbol name to search for (empty for all symbols)"),
-		limit: z
-			.number()
-			.optional()
-			.describe("Maximum number of symbols to return (default: 20)"),
+		title: "Find workspace symbols using LSP",
+		description: "Find workspace symbols using LSP",
+		inputSchema: {
+			query: z
+				.string()
+				.optional()
+				.describe("Symbol name to search for (empty for all symbols)"),
+			limit: z
+				.number()
+				.optional()
+				.describe("Maximum number of symbols to return (default: 20)"),
+		},
 	},
 	async ({ query, limit }) => {
 		try {
@@ -1654,15 +1663,18 @@ server.tool(
 	},
 );
 
-server.tool(
+server.registerTool(
 	"vim_search_files",
-	"Search for files in the current project by pattern",
 	{
-		pattern: z.string().describe("File name pattern to search for"),
-		includeContent: z
-			.boolean()
-			.optional()
-			.describe("Whether to include file content preview (default: false)"),
+		title: "Search for files in the current project by pattern",
+		description: "Search for files in the current project by pattern",
+		inputSchema: {
+			pattern: z.string().describe("File name pattern to search for"),
+			includeContent: z
+				.boolean()
+				.optional()
+				.describe("Whether to include file content preview (default: false)"),
+		},
 	},
 	async ({ pattern, includeContent }) => {
 		try {
@@ -1694,16 +1706,19 @@ server.tool(
 	},
 );
 
-server.tool(
+server.registerTool(
 	"vim_get_selection",
-	"Get the currently selected text or last visual selection from Neovim",
 	{
-		includeContext: z
-			.boolean()
-			.optional()
-			.describe(
-				"Include surrounding context (5 lines before/after) (default: false)",
-			),
+		title: "Get the currently selected text or last visual selection from Neovim",
+		description: "Get the currently selected text or last visual selection from Neovim",
+		inputSchema: {
+			includeContext: z
+				.boolean()
+				.optional()
+				.describe(
+					"Include surrounding context (5 lines before/after) (default: false)",
+				),
+		},
 	},
 	async ({ includeContext }) => {
 		try {

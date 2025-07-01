@@ -1,0 +1,12 @@
+{
+	"mcpServers": {
+		"mcp-neovim-server": {
+			"command": "mcp-neovim-server",
+			"timeout": 5000,
+			"env": {
+				"ALLOW_SHELL_COMMANDS": "true",
+				"NVIM_SOCKET_PATH": "/tmp/mcp-neovim-server"
+			}
+		}
+	}
+}

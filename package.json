@@ -6,7 +6,11 @@
 	"bin": {
 		"mcp-neovim-server": "build/index.js"
 	},
-	"files": ["build", "src", "tsconfig.json"],
+	"files": [
+		"build",
+		"src",
+		"tsconfig.json"
+	],
 	"scripts": {
 		"build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
 		"watch": "tsc --watch",

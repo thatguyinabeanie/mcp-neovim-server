@@ -1343,15 +1343,18 @@ server.registerTool(
 	},
 );
 
-server.tool(
+server.registerTool(
 	"vim_grep",
-	"Project-wide search using vimgrep with quickfix list",
 	{
-		pattern: z.string().describe("Search pattern to grep for"),
-		filePattern: z
-			.string()
-			.optional()
-			.describe("File pattern to search in (default: **/* for all files)"),
+		title: "Project-wide search using vimgrep with quickfix list",
+		description: "Project-wide search using vimgrep with quickfix list",
+		inputSchema: {
+			pattern: z.string().describe("Search pattern to grep for"),
+			filePattern: z
+				.string()
+				.optional()
+				.describe("File pattern to search in (default: **/* for all files)"),
+		},
 	},
 	async ({ pattern, filePattern = "**/*" }) => {
 		try {
@@ -1379,38 +1382,49 @@ server.tool(
 );
 
 // Health check tool
-server.tool("vim_health", "Check Neovim connection health", {}, async () => {
-	const isHealthy = await neovimManager.healthCheck();
-	return {
-		content: [
-			{
-				type: "text",
-				text: isHealthy
-					? "Neovim connection is healthy"
-					: "Neovim connection failed",
-			},
-		],
-	};
-});
+server.registerTool(
+	"vim_health",
+	{
+		title: "Check Neovim connection health",
+		description: "Check Neovim connection health",
+		inputSchema: {},
+	},
+	async () => {
+		const isHealthy = await neovimManager.healthCheck();
+		return {
+			content: [
+				{
+					type: "text",
+					text: isHealthy
+						? "Neovim connection is healthy"
+						: "Neovim connection failed",
+				},
+			],
+		};
+	},
+);
 
 // Macro management tool
-server.tool(
+server.registerTool(
 	"vim_macro",
-	"Record, stop, and play Neovim macros",
 	{
-		action: z
-			.enum(["record", "stop", "play"])
-			.describe("Action to perform with macros"),
-		register: z
-			.string()
-			.optional()
-			.describe(
-				"Register to record/play macro (a-z, required for record/play)",
-			),
-		count: z
-			.number()
-			.optional()
-			.describe("Number of times to play macro (default: 1)"),
+		title: "Record, stop, and play Neovim macros",
+		description: "Record, stop, and play Neovim macros",
+		inputSchema: {
+			action: z
+				.enum(["record", "stop", "play"])
+				.describe("Action to perform with macros"),
+			register: z
+				.string()
+				.optional()
+				.describe(
+					"Register to record/play macro (a-z, required for record/play)",
+				),
+			count: z
+				.number()
+				.optional()
+				.describe("Number of times to play macro (default: 1)"),
+		},
 	},
 	async ({ action, register, count = 1 }) => {
 		try {
@@ -1438,14 +1452,17 @@ server.tool(
 );
 
 // Tab management tool
-server.tool(
+server.registerTool(
 	"vim_tab",
-	"Manage Neovim tabs: create, close, and navigate between tabs",
 	{
-		action: z
-			.enum(["new", "close", "next", "prev", "first", "last", "list"])
-			.describe("Tab action to perform"),
-		filename: z.string().optional().describe("Filename for new tab (optional)"),
+		title: "Manage Neovim tabs: create, close, and navigate between tabs",
+		description: "Manage Neovim tabs: create, close, and navigate between tabs",
+		inputSchema: {
+			action: z
+				.enum(["new", "close", "next", "prev", "first", "last", "list"])
+				.describe("Tab action to perform"),
+			filename: z.string().optional().describe("Filename for new tab (optional)"),
+		},
 	},
 	async ({ action, filename }) => {
 		try {
@@ -1472,29 +1489,32 @@ server.tool(
 );
 
 // Code folding tool
-server.tool(
+server.registerTool(
 	"vim_fold",
-	"Manage code folding: create, open, close, and toggle folds",
 	{
-		action: z
-			.enum([
-				"create",
-				"open",
-				"close",
-				"toggle",
-				"openall",
-				"closeall",
-				"delete",
-			])
-			.describe("Folding action to perform"),
-		startLine: z
-			.number()
-			.optional()
-			.describe("Start line for creating fold (required for create)"),
-		endLine: z
-			.number()
-			.optional()
-			.describe("End line for creating fold (required for create)"),
+		title: "Manage code folding: create, open, close, and toggle folds",
+		description: "Manage code folding: create, open, close, and toggle folds",
+		inputSchema: {
+			action: z
+				.enum([
+					"create",
+					"open",
+					"close",
+					"toggle",
+					"openall",
+					"closeall",
+					"delete",
+				])
+				.describe("Folding action to perform"),
+			startLine: z
+				.number()
+				.optional()
+				.describe("Start line for creating fold (required for create)"),
+			endLine: z
+				.number()
+				.optional()
+				.describe("End line for creating fold (required for create)"),
+		},
 	},
 	async ({ action, startLine, endLine }) => {
 		try {

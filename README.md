@@ -1,8 +1,10 @@
-# Neovim MCP Server
+# Neovim MCP Server (Enhanced Fork)
 
 Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MCP and the official neovim/node-client JavaScript library. This enhanced fork leverages Vim's native text editing commands and workflows, which Claude already understands, to create a powerful code assistance layer with additional tools and resources.
 
 **Version 0.6.0** - Enhanced fork with additional tools and resources!
+
+> This is an enhanced fork of [bigcodegen/mcp-neovim-server](https://github.com/bigcodegen/mcp-neovim-server) with additional features and improvements.
 
 <a href="https://glama.ai/mcp/servers/s0fywdwp87"><img width="380" height="200" src="https://glama.ai/mcp/servers/s0fywdwp87/badge" alt="mcp-neovim-server MCP server" /></a>
 
@@ -109,6 +111,33 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 - **vim_health**
   - Check Neovim connection health and socket status
 
+#### Enhanced Tools (Fork-specific)
+- **vim_analyze_related**
+  - Analyze files related through imports/requires in the current or specified buffer
+  - Input `filename` (string, optional) - Optional filename to analyze
+- **vim_find_symbols**
+  - Find workspace symbols using LSP
+  - Input `query` (string, optional), `limit` (number, optional) - Symbol search with optional filtering
+- **vim_search_files**
+  - Search for files in the current project by pattern
+  - Input `pattern` (string), `includeContent` (boolean, optional) - File search with content preview
+- **vim_get_selection**
+  - Get the currently selected text or last visual selection
+  - Input `includeContext` (boolean, optional) - Include surrounding context lines
+
+#### Resource-based Tools
+- **vim_get_session** - Get current Neovim session details
+- **vim_get_buffers** - Get list of all open buffers
+- **vim_get_project_structure** - Get file tree of working directory
+- **vim_get_git_status** - Get current git repository status
+- **vim_get_lsp_diagnostics** - Get current LSP diagnostics
+- **vim_get_vim_options** - Get Neovim configuration and options
+- **vim_get_related_files** - Get files related through imports
+- **vim_get_recent_files** - Get recently accessed project files
+- **vim_get_visual_selection** - Get current or last visual selection
+- **vim_get_workspace_context** - Get enhanced workspace context
+- **vim_get_search_results** - Get current search results and quickfix list
+
 Using this comprehensive set of **19+ tools**, Claude can peer into your neovim session, navigate buffers, perform searches, make edits, record macros, manage tabs and folds, and handle your complete development workflow with standard Neovim features. This enhanced fork includes additional tools for project analysis, workspace context, and LSP integration.
 
 ### Prompts
@@ -123,7 +152,7 @@ The server implements comprehensive error handling with custom error classes and
 - **NeovimCommandError**: Command execution failures with command context  
 - **NeovimValidationError**: Input validation failures
 
-**New in v0.5.2**: All tools now include robust try-catch error handling that returns meaningful error messages in proper MCP format. Features include connection health monitoring, graceful error propagation, and actionable error messages to help diagnose issues.
+**New in v0.6.0**: This enhanced fork includes additional resources and tools for better project integration, LSP diagnostics, workspace context analysis, and improved development workflow support.
 
 ## Limitations
 
@@ -141,7 +170,7 @@ The server implements comprehensive error handling with custom error classes and
 ## Installation
 
 ### Option 1: DXT Package (Recommended)
-1. Download the latest `.dxt` file from [Releases](https://github.com/bigcodegen/mcp-neovim-server/releases)
+1. Download the latest `.dxt` file from [Releases](https://github.com/thatguyinabeanie/mcp-neovim-server/releases)
 2. Drag the file to Claude Desktop
 
 ### Option 2: Manual Installation

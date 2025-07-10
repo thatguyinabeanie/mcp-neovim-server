@@ -138,11 +138,21 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 - **vim_get_workspace_context** - Get enhanced workspace context
 - **vim_get_search_results** - Get current search results and quickfix list
 
-Using this comprehensive set of **19+ tools**, Claude can peer into your neovim session, navigate buffers, perform searches, make edits, record macros, manage tabs and folds, and handle your complete development workflow with standard Neovim features. This enhanced fork includes additional tools for project analysis, workspace context, and LSP integration.
+Using this comprehensive set of **30+ tools**, Claude can peer into your neovim session, navigate buffers, perform searches, make edits, record macros, manage tabs and folds, and handle your complete development workflow with standard Neovim features. This enhanced fork includes additional tools for project analysis, workspace context, and LSP integration.
 
 ### Prompts
 
 - **neovim_workflow**: Get contextual help and guidance for common Neovim workflows including editing, navigation, search, buffer management, window operations, and macro usage. Provides step-by-step instructions for accomplishing tasks with the available MCP tools.
+
+## What's New in This Fork
+
+**New in v0.6.0**: This enhanced fork includes additional resources and tools for better project integration, LSP diagnostics, workspace context analysis, and improved development workflow support.
+
+### Enhanced Features:
+- **Extended Resources**: 11 resource types including project structure, git status, LSP diagnostics, and workspace context
+- **Additional Tools**: 12+ new tools for advanced workspace analysis and file management
+- **Better Integration**: Enhanced LSP support and symbol searching
+- **Improved Workflow**: Better context awareness and project navigation
 
 ## Error Handling
 
@@ -152,7 +162,7 @@ The server implements comprehensive error handling with custom error classes and
 - **NeovimCommandError**: Command execution failures with command context  
 - **NeovimValidationError**: Input validation failures
 
-**New in v0.6.0**: This enhanced fork includes additional resources and tools for better project integration, LSP diagnostics, workspace context analysis, and improved development workflow support.
+All tools include robust try-catch error handling that returns meaningful error messages in proper MCP format. Features include connection health monitoring, graceful error propagation, and actionable error messages to help diagnose issues.
 
 ## Limitations
 
@@ -175,6 +185,25 @@ The server implements comprehensive error handling with custom error classes and
 
 ### Option 2: Manual Installation
 Add this to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "MCP Neovim Server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@thatguyinabeanie/mcp-neovim-server"
+      ],
+      "env": {
+        "ALLOW_SHELL_COMMANDS": "true",
+        "NVIM_SOCKET_PATH": "/tmp/nvim"
+      }
+    }
+  }
+}
+```
+
+Or if installing from this fork's repository:
 ```json
 {
   "mcpServers": {

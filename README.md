@@ -1,8 +1,8 @@
 # Neovim MCP Server
 
-Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MCP and the official neovim/node-client JavaScript library. This server leverages Vim's native text editing commands and workflows, which Claude already understands, to create a lightweight code or general purpose AI text assistance layer.
+Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MCP and the official neovim/node-client JavaScript library. This enhanced fork leverages Vim's native text editing commands and workflows, which Claude already understands, to create a powerful code assistance layer with additional tools and resources.
 
-**Version 0.5.3** - Now with a DXT package!
+**Version 0.6.0** - Enhanced fork with additional tools and resources!
 
 <a href="https://glama.ai/mcp/servers/s0fywdwp87"><img width="380" height="200" src="https://glama.ai/mcp/servers/s0fywdwp87/badge" alt="mcp-neovim-server MCP server" /></a>
 
@@ -24,6 +24,15 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 
 - `nvim://session`: Current neovim text editor session
 - `nvim://buffers`: List of all open buffers in the current Neovim session with metadata including modified status, syntax, and window IDs
+- `nvim://project-structure`: File tree of the current working directory
+- `nvim://git-status`: Current git repository status
+- `nvim://lsp-diagnostics`: Current LSP diagnostics for all buffers
+- `nvim://vim-options`: Current Neovim configuration and options
+- `nvim://related-files`: Files related to current buffer through imports/requires
+- `nvim://recent-files`: Recently accessed files in current project
+- `nvim://visual-selection`: Currently selected text or last visual selection
+- `nvim://workspace-context`: Enhanced workspace context with all related information
+- `nvim://search-results`: Current search results and quickfix list
 
 ### Tools
 
@@ -100,7 +109,7 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 - **vim_health**
   - Check Neovim connection health and socket status
 
-Using this comprehensive set of **19 tools**, Claude can peer into your neovim session, navigate buffers, perform searches, make edits, record macros, manage tabs and folds, and handle your complete development workflow with standard Neovim features.
+Using this comprehensive set of **19+ tools**, Claude can peer into your neovim session, navigate buffers, perform searches, make edits, record macros, manage tabs and folds, and handle your complete development workflow with standard Neovim features. This enhanced fork includes additional tools for project analysis, workspace context, and LSP integration.
 
 ### Prompts
 

@@ -2,7 +2,7 @@
 
 Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MCP and the official neovim/node-client JavaScript library. This server leverages Vim's native text editing commands and workflows, which Claude already understands, to create a lightweight code or general purpose AI text assistance layer.
 
-**Version 0.5.2** - Now with comprehensive error handling, improved MCP compliance, and helpful workflow prompts!
+**Version 0.5.3** - Now with a DXT package!
 
 <a href="https://glama.ai/mcp/servers/s0fywdwp87"><img width="380" height="200" src="https://glama.ai/mcp/servers/s0fywdwp87/badge" alt="mcp-neovim-server MCP server" /></a>
 
@@ -28,7 +28,6 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
 ### Tools
 
 #### Core Tools
-
 - **vim_buffer**
   - Get buffer contents with line numbers (supports filename parameter)
   - Input `filename` (string, optional) - Get specific buffer by filename
@@ -38,7 +37,7 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
   - Input `command` (string)
   - Runs vim commands with `nvim.replaceTermcodes`. Multiple commands work with newlines
   - Shell commands supported with `!` prefix when `ALLOW_SHELL_COMMANDS=true`
-  - On error, `'nvim:errmsg'` contents are returned
+  - On error, `'nvim:errmsg'` contents are returned 
 - **vim_status**
   - Get comprehensive Neovim status
   - Returns cursor position, mode, filename, visual selection, window layout, current tab, marks, registers, working directory, LSP client info, and plugin detection
@@ -62,7 +61,6 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
   - Input `startLine` (number), `startColumn` (number), `endLine` (number), `endColumn` (number)
 
 #### Enhanced Buffer Management
-
 - **vim_buffer_switch**
   - Switch between buffers by name or number
   - Input `identifier` (string | number) - Buffer name or number
@@ -74,7 +72,6 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
   - Input `filename` (string) - File to open
 
 #### Search and Replace
-
 - **vim_search**
   - Search within current buffer with regex support
   - Input `pattern` (string), `ignoreCase` (boolean, optional), `wholeWord` (boolean, optional)
@@ -86,7 +83,6 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
   - Input `pattern` (string), `filePattern` (string, optional) - File pattern to search
 
 #### Advanced Workflow Tools
-
 - **vim_macro**
   - Record, stop, and play Vim macros
   - Input `action` ("record" | "stop" | "play"), `register` (string, a-z), `count` (number, optional)
@@ -101,7 +97,6 @@ Connect Claude Desktop (or any Model Context Protocol client) to Neovim using MC
   - Input `direction` ("back" | "forward" | "list")
 
 #### System Tools
-
 - **vim_health**
   - Check Neovim connection health and socket status
 
@@ -116,7 +111,7 @@ Using this comprehensive set of **19 tools**, Claude can peer into your neovim s
 The server implements comprehensive error handling with custom error classes and consistent error responses:
 
 - **NeovimConnectionError**: Socket connection failures with detailed messages
-- **NeovimCommandError**: Command execution failures with command context
+- **NeovimCommandError**: Command execution failures with command context  
 - **NeovimValidationError**: Input validation failures
 
 **New in v0.5.2**: All tools now include robust try-catch error handling that returns meaningful error messages in proper MCP format. Features include connection health monitoring, graceful error propagation, and actionable error messages to help diagnose issues.
@@ -134,16 +129,23 @@ The server implements comprehensive error handling with custom error classes and
 - `ALLOW_SHELL_COMMANDS`: Set to 'true' to enable shell command execution (e.g. `!ls`). Defaults to false for security.
 - `NVIM_SOCKET_PATH`: Set to the path of your Neovim socket. Defaults to '/tmp/nvim' if not specified.
 
-## Usage with Claude Desktop
+## Installation
 
+### Option 1: DXT Package (Recommended)
+1. Download the latest `.dxt` file from [Releases](https://github.com/bigcodegen/mcp-neovim-server/releases)
+2. Drag the file to Claude Desktop
+
+### Option 2: Manual Installation
 Add this to your `claude_desktop_config.json`:
-
 ```json
 {
   "mcpServers": {
     "MCP Neovim Server": {
       "command": "npx",
-      "args": ["-y", "mcp-neovim-server"],
+      "args": [
+        "-y",
+        "mcp-neovim-server"
+      ],
       "env": {
         "ALLOW_SHELL_COMMANDS": "true",
         "NVIM_SOCKET_PATH": "/tmp/nvim"

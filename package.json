@@ -1,40 +1,41 @@
 {
-	"name": "mcp-neovim-server",
-	"version": "0.6.0",
-	"description": "Enhanced MCP server for neovim with additional tools and resources",
-	"type": "module",
-	"bin": {
-		"mcp-neovim-server": "build/index.js"
-	},
-	"files": [
-		"build",
-		"src",
-		"tsconfig.json"
-	],
-	"scripts": {
-		"build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
-		"watch": "tsc --watch",
-		"test": "tsc --noEmit",
-		"inspector": "npx @modelcontextprotocol/inspector build/index.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/thatguyinabeanie/mcp-neovim-server.git"
-	},
-	"author": "thatguyinabeanie",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/thatguyinabeanie/mcp-neovim-server/issues"
-	},
-	"homepage": "https://github.com/thatguyinabeanie/mcp-neovim-server#readme",
-	"dependencies": {
-		"@modelcontextprotocol/sdk": "^1.13",
-		"neovim": "^5",
-		"ts-node": "^10.9.2",
-		"typescript": "^5.8.3",
-		"zod": "^3.25.64"
-	},
-	"devDependencies": {
-		"@types/node": "^22.15.34"
-	}
+  "name": "mcp-neovim-server",
+  "version": "0.6.0",
+  "description": "Enhanced MCP server for neovim with additional tools and resources",
+  "type": "module",
+  "bin": {
+    "mcp-neovim-server": "build/index.js"
+  },
+  "files": [
+    "build",
+    "src",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prepare": "npm run build",
+    "watch": "tsc --watch",
+    "test": "tsc --noEmit",
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thatguyinabeanie/mcp-neovim-server.git"
+  },
+  "author": "thatguyinabeanie",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thatguyinabeanie/mcp-neovim-server/issues"
+  },
+  "homepage": "https://github.com/thatguyinabeanie/mcp-neovim-server#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.2",
+    "neovim": "^5.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.6"
+  }
 }
